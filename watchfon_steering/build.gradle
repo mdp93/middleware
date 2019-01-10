@@ -34,4 +34,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     implementation 'com.github.umich-carlab.carlab:libcarlab:3eeae55855'
+    implementation project(':world_aligned_imu')
+    implementation project(':watchfon_speed')
 }

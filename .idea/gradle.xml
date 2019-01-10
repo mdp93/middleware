@@ -8,6 +8,8 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/watchfon_speed" />
+            <option value="$PROJECT_DIR$/watchfon_steering" />
             <option value="$PROJECT_DIR$/world_aligned_imu" />
           </set>
         </option>

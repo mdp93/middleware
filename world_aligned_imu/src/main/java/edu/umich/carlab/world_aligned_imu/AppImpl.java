@@ -14,8 +14,8 @@ import edu.umich.carlab.sensors.PhoneSensors;
  * It takes the phone's IMU sensors and always points to the
  * vehicle forward direction.
  */
-public class VehicleAlignmentApp extends App {
-    final String TAG = "VehicleAlignmentApp";
+public class AppImpl extends App {
+    final String TAG = "AppImpl";
 
     private DataMarshal.DataObject  lastMagnet,
             lastGravity,
@@ -31,7 +31,7 @@ public class VehicleAlignmentApp extends App {
         return lastComputedOrientation;
     }
 
-    public VehicleAlignmentApp(CLDataProvider cl, Context context) {
+    public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
 
         name = "Phone Vehicle Alignment Estimation";
@@ -48,7 +48,7 @@ public class VehicleAlignmentApp extends App {
         String sensor = dObject.sensor;
 
         if (dObject.dataType != DataMarshal.MessageType.DATA) return;
-        if (dObject.device.equals(VehicleAlignmentUtil.APP)) return;
+        if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;
 
         switch (sensor) {
@@ -96,18 +96,18 @@ public class VehicleAlignmentApp extends App {
                 casted[0] = lastComputedOrientation[0];
                 casted[1] = lastComputedOrientation[1];
                 casted[2] = lastComputedOrientation[2];
-                outputData(dObject, VehicleAlignmentUtil.ORIENT, casted);
+                outputData(dObject, MiddlewareImpl.ORIENT, casted);
             }
         }
 
 
 
         if (lastComputedOrientation != null && lastGyro != null)
-            outputData(dObject, VehicleAlignmentUtil.GYRO, MatrixMul(lastGyro.value, RotMat));
+            outputData(dObject, MiddlewareImpl.GYRO, MatrixMul(lastGyro.value, RotMat));
 
 
         if (lastComputedOrientation != null && lastAccel != null)
-            outputData(dObject, VehicleAlignmentUtil.ACCEL, MatrixMul(lastAccel.value, RotMat));
+            outputData(dObject, MiddlewareImpl.ACCEL, MatrixMul(lastAccel.value, RotMat));
     }
 
     public Float[] MatrixMul(Float[] T, float[][]RotMat){
@@ -121,7 +121,7 @@ public class VehicleAlignmentApp extends App {
 
     void outputData(DataMarshal.DataObject dObject, String sensor, Float[] value) {
         DataMarshal.DataObject secondaryDataObject = dObject.clone();
-        secondaryDataObject.device = VehicleAlignmentUtil.APP;
+        secondaryDataObject.device = MiddlewareImpl.APP;
         secondaryDataObject.sensor = sensor;
         secondaryDataObject.value = value;
         cl.newData(secondaryDataObject);

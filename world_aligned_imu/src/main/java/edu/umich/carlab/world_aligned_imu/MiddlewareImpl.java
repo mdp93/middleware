@@ -6,7 +6,7 @@ import edu.umich.carlab.loadable.Middleware;
 import java.util.HashMap;
 import java.util.Map;
 
-public class VehicleAlignmentUtil implements Middleware {
+public class MiddlewareImpl implements Middleware {
     public final static String APP = "world_aligned_imu";
     public final static String ACCEL = "accel";
     public final static String GYRO = "gyro";
