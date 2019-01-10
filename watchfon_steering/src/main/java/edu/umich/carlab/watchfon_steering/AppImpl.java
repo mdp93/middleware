@@ -59,19 +59,12 @@ public class AppImpl extends App {
             steering = STEERING_RATIO * steering;
             steering *= 180 / Math.PI;
             outputData(
+                MiddlewareImpl.APP,
                 dObject,
                 MiddlewareImpl.STEERING,
-                new Float[] { steering.floatValue() }
+                steering.floatValue()
             );
         }
 
-    }
-
-    void outputData(DataMarshal.DataObject dObject, String sensor, Float[] value) {
-        DataMarshal.DataObject secondaryDataObject = dObject.clone();
-        secondaryDataObject.device = MiddlewareImpl.APP;
-        secondaryDataObject.sensor = sensor;
-        secondaryDataObject.value = value;
-        cl.newData(secondaryDataObject);
     }
 }

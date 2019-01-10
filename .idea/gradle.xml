@@ -8,7 +8,12 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/watchfon_fuel" />
+            <option value="$PROJECT_DIR$/watchfon_gear" />
+            <option value="$PROJECT_DIR$/watchfon_odometer" />
+            <option value="$PROJECT_DIR$/watchfon_rpm" />
             <option value="$PROJECT_DIR$/watchfon_speed" />
+            <option value="$PROJECT_DIR$/watchfon_spoofed_sensors" />
             <option value="$PROJECT_DIR$/watchfon_steering" />
             <option value="$PROJECT_DIR$/world_aligned_imu" />
           </set>
