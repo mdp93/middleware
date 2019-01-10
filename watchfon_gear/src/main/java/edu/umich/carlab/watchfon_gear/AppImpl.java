@@ -29,6 +29,6 @@ public class AppImpl extends App {
 
         Map<String, Float> gpsSplit = PhoneSensors.splitValues(dObject);
         Float speed = gpsSplit.get(PhoneSensors.GPS_SPEED);
-        outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.SPEED, speed);
+        outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.GEAR, speed);
     }
 }

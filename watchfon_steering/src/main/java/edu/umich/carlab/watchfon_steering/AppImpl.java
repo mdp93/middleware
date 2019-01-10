@@ -15,9 +15,9 @@ import java.util.Map;
  */
 public class AppImpl extends App {
     final String TAG = "WatchfonSteering";
-    final double STEERING_RATIO = 15.2;
+    final double STEERING_RATIO = 14.8;
     final double INCHES_TO_METERS = 0.0254;
-    final double VEHICLE_LENGTH = 178.1 * INCHES_TO_METERS; // Finally in meters
+    final double VEHICLE_LENGTH = 193.9 * INCHES_TO_METERS; // Finally in meters
 
     Float lastSpeed = null;
     Float lastYaw = null;

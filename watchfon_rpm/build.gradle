@@ -34,4 +34,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     implementation 'com.github.umich-carlab:carlab:5cfb9e691c'
+
+    implementation project(':watchfon_gear')
+    implementation project(':watchfon_speed')
 }
