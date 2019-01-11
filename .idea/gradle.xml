@@ -10,6 +10,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/watchfon_fuel" />
             <option value="$PROJECT_DIR$/watchfon_gear" />
+            <option value="$PROJECT_DIR$/watchfon_intrusion_detection" />
             <option value="$PROJECT_DIR$/watchfon_odometer" />
             <option value="$PROJECT_DIR$/watchfon_rpm" />
             <option value="$PROJECT_DIR$/watchfon_speed" />

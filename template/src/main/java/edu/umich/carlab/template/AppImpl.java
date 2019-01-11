@@ -17,18 +17,22 @@ public class AppImpl extends App {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "template";
-        sensors.add(new Pair<>(PhoneSensors.DEVICE, PhoneSensors.GPS));
+        
+        subscribe(PhoneSensors.DEVICE, PhoneSensors.GPS);
     }
 
 
     @Override
     public void newData(DataMarshal.DataObject dObject) {
-        if (dObject.dataType != DataMarshal.MessageType.DATA) return;
+        super.newData(dObject);
+        if (!isValidData(dObject)) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
-        if (dObject.value == null) return;
-
-        Map<String, Float> gpsSplit = PhoneSensors.splitValues(dObject);
-        Float speed = gpsSplit.get(PhoneSensors.GPS_SPEED);
-        outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.SPEED, speed);
+        
+        DataMarshal.DataObject  latestValue = getLatestData(PhoneSensors.DEVICE, PhoneSensors.GPS);
+        if (latestValue != null) {
+          Map<String, Float> gpsSplit = PhoneSensors.splitValues(latestValue);
+          Float speed = gpsSplit.get(PhoneSensors.GPS_SPEED);
+          outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.SPEED, speed);
+        }
     }
 }
