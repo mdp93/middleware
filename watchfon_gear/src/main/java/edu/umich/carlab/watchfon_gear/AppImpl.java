@@ -13,11 +13,15 @@ import java.util.Map;
 
 public class AppImpl extends App {
     final String TAG = "watchfon_gear";
+    final edu.umich.carlab.world_aligned_imu.MiddlewareImpl world_aligned_imu = new edu.umich.carlab.world_aligned_imu.MiddlewareImpl();
+    final edu.umich.carlab.watchfon_speed.MiddlewareImpl watchfon_speed = new edu.umich.carlab.watchfon_speed.MiddlewareImpl();
+
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "watchfon_gear";
-        sensors.add(new Pair<>(PhoneSensors.DEVICE, PhoneSensors.GPS));
+        sensors.add(new Pair<>(world_aligned_imu.APP, world_aligned_imu.ACCEL));
+        sensors.add(new Pair<>(watchfon_speed.APP, watchfon_speed.SPEED));
     }
 
 
@@ -27,8 +31,7 @@ public class AppImpl extends App {
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;
 
-        Map<String, Float> gpsSplit = PhoneSensors.splitValues(dObject);
-        Float speed = gpsSplit.get(PhoneSensors.GPS_SPEED);
-        outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.GEAR, speed);
+        // TODO. For now we just output a placeholder.
+        outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.GEAR, 1f);
     }
 }
