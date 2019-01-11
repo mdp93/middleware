@@ -8,6 +8,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/watchfon_estimates" />
             <option value="$PROJECT_DIR$/watchfon_fuel" />
             <option value="$PROJECT_DIR$/watchfon_gear" />
             <option value="$PROJECT_DIR$/watchfon_intrusion_detection" />
