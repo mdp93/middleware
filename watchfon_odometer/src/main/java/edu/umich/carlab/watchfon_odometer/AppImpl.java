@@ -17,6 +17,9 @@ public class AppImpl extends App {
     Map<String, Float> lastValues = null;
     Location lastLoc, currLoc;
 
+    // Distance in meters
+    Double distance = 0d;
+
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         lastLoc = new Location("");
@@ -39,11 +42,12 @@ public class AppImpl extends App {
             lastLoc.setLongitude(values.get(PhoneSensors.GPS_LONGITUDE));
             currLoc.setLatitude(values.get(PhoneSensors.GPS_LATITUDE));
             currLoc.setLongitude(values.get(PhoneSensors.GPS_LONGITUDE));
+            distance += currLoc.distanceTo(lastLoc);
             outputData(
                     MiddlewareImpl.APP,
                     dObject,
                     MiddlewareImpl.DISTANCE,
-                    currLoc.distanceTo(lastLoc)
+                    distance.floatValue()
             );
         }
         lastValues = values;
