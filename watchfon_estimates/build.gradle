@@ -33,5 +33,11 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
+    implementation project(':watchfon_fuel')
+    implementation project(':watchfon_gear')
+    implementation project(':watchfon_rpm')
+    implementation project(':watchfon_steering')
+    implementation project(':watchfon_speed')
+    implementation project(':watchfon_odometer')
     implementation 'com.github.umich-carlab.carlab:libcarlab:-SNAPSHOT'
 }
