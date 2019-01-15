@@ -39,5 +39,6 @@ dependencies {
     implementation project(':watchfon_estimates')
     implementation project(':watchfon_spoofed_sensors')
 
-    implementation 'com.github.umich-carlab.carlab:libcarlab:-SNAPSHOT'
+            implementation 'com.github.umich-carlab:carlab:-SNAPSHOT'
+            
 }
