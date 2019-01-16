@@ -14,6 +14,8 @@ import java.util.Map;
 
 public class AppImpl extends App {
     final String TAG = "watchfon_odometer";
+    final String DISTANCE_KEY = "distance";
+
     Map<String, Float> lastValues = null;
     Location lastLoc, currLoc;
 
@@ -27,6 +29,7 @@ public class AppImpl extends App {
 
         name = "watchfon_odometer";
         sensors.add(new Pair<>(PhoneSensors.DEVICE, PhoneSensors.GPS));
+        distance = loadValue(DISTANCE_KEY, 0d);
     }
 
 
@@ -51,6 +54,11 @@ public class AppImpl extends App {
             );
         }
         lastValues = values;
+    }
 
+    @Override
+    public void shutdown() {
+        super.shutdown();
+        saveValue(DISTANCE_KEY, distance);
     }
 }

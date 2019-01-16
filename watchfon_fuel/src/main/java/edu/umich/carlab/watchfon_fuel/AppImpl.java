@@ -12,6 +12,7 @@ import java.util.Map;
 
 public class AppImpl extends App {
     final String TAG = "watchfon_fuel";
+    final String FUEL_KEY = "fuel";
 
     final Double MILE_PER_KM = 0.621371;
     final Double GALLONS_PER_LITER = 0.26417217685;
@@ -23,11 +24,12 @@ public class AppImpl extends App {
     Double lastOdometer, currOdometer;
     Double distance, fuelConsumed;
 
+
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "watchfon_fuel";
         sensors.add(new Pair<>(watchfon_odometer.APP, watchfon_odometer.DISTANCE));
-        previousFuelLevel = MAX_FUEL_CAPACITY;
+        previousFuelLevel = loadValue(FUEL_KEY, MAX_FUEL_CAPACITY);
     }
 
 
@@ -49,7 +51,11 @@ public class AppImpl extends App {
         }
 
         lastOdometer = currOdometer;
+    }
 
-
+    @Override
+    public void shutdown() {
+        super.shutdown();
+        saveValue(FUEL_KEY, previousFuelLevel);
     }
 }
