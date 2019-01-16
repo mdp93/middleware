@@ -39,6 +39,7 @@ dependencies {
     implementation project(':watchfon_steering')
     implementation project(':watchfon_speed')
     implementation project(':watchfon_odometer')
-    
-    implementation 'com.github.umich-carlab:carlab:-SNAPSHOT'
+
+    // implementation 'com.github.umich-carlab:carlab:-SNAPSHOT'
+    implementation project(':libcarlab')
 }

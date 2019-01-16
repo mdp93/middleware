@@ -33,7 +33,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-            implementation 'com.github.umich-carlab:carlab:-SNAPSHOT'
-
+    // implementation 'com.github.umich-carlab:carlab:-SNAPSHOT'
+    implementation project(':libcarlab')
     implementation project(':watchfon_odometer')
 }
