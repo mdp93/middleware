@@ -1,8 +1,11 @@
 package edu.umich.carlab.watchfon_fuel;
 
+import android.app.Activity;
 import android.content.Context;
 import android.hardware.SensorManager;
 import android.util.Pair;
+import android.view.View;
+import android.widget.Button;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
@@ -54,8 +57,31 @@ public class AppImpl extends App {
     }
 
     @Override
+    public View initializeVisualization(Activity parentActivity) {
+        super.initializeVisualization(parentActivity);
+        Button resetButton = new Button(parentActivity);
+        resetButton.setText("Reset Fuel to Maximum");
+        resetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                previousFuelLevel = MAX_FUEL_CAPACITY;
+                saveValue(FUEL_KEY, MAX_FUEL_CAPACITY);
+            }
+        });
+        return resetButton;
+    }
+
+    @Override
+    public void destroyVisualization() {
+
+    }
+
+    @Override
     public void shutdown() {
         super.shutdown();
         saveValue(FUEL_KEY, previousFuelLevel);
     }
+
+
+
 }
