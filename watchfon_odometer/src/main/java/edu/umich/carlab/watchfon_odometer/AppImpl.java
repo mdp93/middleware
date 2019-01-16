@@ -38,8 +38,8 @@ public class AppImpl extends App {
 
         Map<String, Float> values = PhoneSensors.splitValues(dObject);
         if (lastValues != null) {
-            lastLoc.setLatitude(values.get(PhoneSensors.GPS_LATITUDE));
-            lastLoc.setLongitude(values.get(PhoneSensors.GPS_LONGITUDE));
+            lastLoc.setLatitude(lastValues.get(PhoneSensors.GPS_LATITUDE));
+            lastLoc.setLongitude(lastValues.get(PhoneSensors.GPS_LONGITUDE));
             currLoc.setLatitude(values.get(PhoneSensors.GPS_LATITUDE));
             currLoc.setLongitude(values.get(PhoneSensors.GPS_LONGITUDE));
             distance += currLoc.distanceTo(lastLoc);
