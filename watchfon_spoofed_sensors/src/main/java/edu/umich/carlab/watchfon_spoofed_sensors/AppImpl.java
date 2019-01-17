@@ -6,6 +6,7 @@ import android.util.Pair;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
+import edu.umich.carlabui.appbases.SensorListAppBase;
 import edu.umich.carlab.sensors.OpenXcSensors;
 import edu.umich.carlab.sensors.PhoneSensors;
 
@@ -20,7 +21,7 @@ import java.util.Map;
  * The nature of the injection is controlled using this middleware's settings.
  */
 
-public class AppImpl extends App {
+public class AppImpl extends SensorListAppBase {
     final String TAG = "watchfon_spoofed_sensors";
 
     Double injectionMagnitude = 10d, newValue;

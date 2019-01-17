@@ -3,12 +3,13 @@ package edu.umich.carlab.watchfon_intrusion_detection;
 import android.content.Context;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
-import edu.umich.carlab.loadable.App;
+import edu.umich.carlabui.appbases.SensorListAppBase;
+import edu.umich.carlabui.appbases.SensorStreamAppBase;
 
 import java.util.Map;
 
 
-public class AppImpl extends App {
+public class AppImpl extends SensorStreamAppBase {
     final String TAG = "watchfon_intrusion_detection";
 
     // Sensors estimated by WatchFon
@@ -35,6 +36,9 @@ public class AppImpl extends App {
         subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.ENGINERPM);
         subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.ODOMETER);
         subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.GEAR);
+
+        addLineGraph(watchfon_estimates.APP, watchfon_estimates.STEERING);
+        addLineGraph(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.STEERING);
     }
 
 
