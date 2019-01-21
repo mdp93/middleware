@@ -7,8 +7,11 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
+            <option value="$PROJECT_DIR$/../carlab/carlabui" />
             <option value="$PROJECT_DIR$/../carlab/libcarlab" />
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/librecan_middleware" />
+            <option value="$PROJECT_DIR$/pothole_detection" />
             <option value="$PROJECT_DIR$/watchfon_estimates" />
             <option value="$PROJECT_DIR$/watchfon_fuel" />
             <option value="$PROJECT_DIR$/watchfon_gear" />

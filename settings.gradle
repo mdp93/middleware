@@ -1,2 +1,12 @@
-include ':world_aligned_imu', ':watchfon_speed', ':watchfon_steering', ':watchfon_rpm', ':watchfon_odometer', ':watchfon_fuel', ':watchfon_gear', ':watchfon_spoofed_sensors', ':watchfon_intrusion_detection', ':watchfon_estimates', ':libcarlab'
-project(':libcarlab').projectDir = new File(settingsDir, '../carlab/libcarlab'), ':pothole_detection', ':librecan'
+include ':world_aligned_imu',
+        ':watchfon_speed', ':watchfon_steering', ':watchfon_rpm',
+        ':watchfon_odometer', ':watchfon_fuel', ':watchfon_gear',
+        ':watchfon_spoofed_sensors', ':watchfon_intrusion_detection',
+        ':watchfon_estimates',
+        ':libcarlab', ':carlabui',
+        ':pothole_detection',
+        ':librecan_middleware'
+
+
+project(':libcarlab').projectDir = new File(settingsDir, '../carlab/libcarlab')
+project(':carlabui').projectDir = new File(settingsDir, '../carlab/carlabui')
