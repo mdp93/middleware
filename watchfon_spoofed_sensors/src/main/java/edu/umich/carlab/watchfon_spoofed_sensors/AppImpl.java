@@ -29,17 +29,19 @@ public class AppImpl extends SensorListAppBase {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "watchfon_spoofed_sensors";
-        sensors.add(new Pair<>(OpenXcSensors.DEVICE, OpenXcSensors.SPEED));
-        sensors.add(new Pair<>(OpenXcSensors.DEVICE, OpenXcSensors.STEERING));
-        sensors.add(new Pair<>(OpenXcSensors.DEVICE, OpenXcSensors.FUEL));
-        sensors.add(new Pair<>(OpenXcSensors.DEVICE, OpenXcSensors.ODOMETER));
-        sensors.add(new Pair<>(OpenXcSensors.DEVICE, OpenXcSensors.ENGINERPM));
-        sensors.add(new Pair<>(OpenXcSensors.DEVICE, OpenXcSensors.GEAR));
+        subscribe(OpenXcSensors.DEVICE, OpenXcSensors.SPEED);
+        subscribe(OpenXcSensors.DEVICE, OpenXcSensors.STEERING);
+        subscribe(OpenXcSensors.DEVICE, OpenXcSensors.FUEL);
+        subscribe(OpenXcSensors.DEVICE, OpenXcSensors.ODOMETER);
+        subscribe(OpenXcSensors.DEVICE, OpenXcSensors.ENGINERPM);
+        subscribe(OpenXcSensors.DEVICE, OpenXcSensors.GEAR);
     }
 
 
     @Override
     public void newData(DataMarshal.DataObject dObject) {
+        super.newData(dObject);
+
         if (dObject.dataType != DataMarshal.MessageType.DATA) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;

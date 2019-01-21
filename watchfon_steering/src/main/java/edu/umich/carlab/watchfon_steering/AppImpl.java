@@ -5,6 +5,7 @@ import android.util.Pair;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
+import edu.umich.carlabui.appbases.SensorListAppBase;
 
 import java.util.Map;
 
@@ -13,7 +14,7 @@ import java.util.Map;
  * Steering wheel estimation. It uses vehicle properties, and
  * the estimated speed.
  */
-public class AppImpl extends App {
+public class AppImpl extends SensorListAppBase {
     final String TAG = "WatchfonSteering";
     final double STEERING_RATIO = 14.8;
     final double INCHES_TO_METERS = 0.0254;
@@ -28,19 +29,14 @@ public class AppImpl extends App {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "WatchFon/Steering";
-        sensors.add(new Pair<>(
-            watchfon_speed.APP,
-            watchfon_speed.SPEED
-        ));
-
-        sensors.add(new Pair<>(
-            world_aligned_imu.APP,
-            world_aligned_imu.GYRO
-        ));
+        subscribe(watchfon_speed.APP, watchfon_speed.SPEED);
+        subscribe(world_aligned_imu.APP, world_aligned_imu.GYRO);
     }
 
     @Override
     public void newData(DataMarshal.DataObject dObject) {
+        super.newData(dObject);
+
         if (dObject.dataType != DataMarshal.MessageType.DATA) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;

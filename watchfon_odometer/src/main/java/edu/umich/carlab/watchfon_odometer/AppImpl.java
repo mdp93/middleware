@@ -8,11 +8,12 @@ import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.sensors.PhoneSensors;
+import edu.umich.carlabui.appbases.SensorListAppBase;
 
 import java.util.Map;
 
 
-public class AppImpl extends App {
+public class AppImpl extends SensorListAppBase {
     final String TAG = "watchfon_odometer";
     final String DISTANCE_KEY = "distance";
 
@@ -28,13 +29,15 @@ public class AppImpl extends App {
         currLoc = new Location("");
 
         name = "watchfon_odometer";
-        sensors.add(new Pair<>(PhoneSensors.DEVICE, PhoneSensors.GPS));
+        subscribe(PhoneSensors.DEVICE, PhoneSensors.GPS);
         distance = loadValue(DISTANCE_KEY, 0d);
     }
 
 
     @Override
     public void newData(DataMarshal.DataObject dObject) {
+        super.newData(dObject);
+
         if (dObject.dataType != DataMarshal.MessageType.DATA) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;

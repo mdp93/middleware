@@ -35,5 +35,6 @@ dependencies {
 
     // implementation 'com.github.umich-carlab:carlab:-SNAPSHOT'
     implementation project(':libcarlab')
+    implementation project(':carlabui')
 }
 

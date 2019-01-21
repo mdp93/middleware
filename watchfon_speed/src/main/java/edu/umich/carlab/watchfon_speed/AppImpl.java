@@ -7,6 +7,7 @@ import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.sensors.PhoneSensors;
+import edu.umich.carlabui.appbases.SensorListAppBase;
 
 import java.util.Map;
 
@@ -16,18 +17,20 @@ import java.util.Map;
  * the speed. The next version of this app will use a complementary filter,
  * vehicle-aligned IMU, and GPS to estimate the speed.
  */
-public class AppImpl extends App {
+public class AppImpl extends SensorListAppBase {
     final String TAG = "WatchfonSpeed";
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "WatchFon/Speed";
-        sensors.add(new Pair<>(PhoneSensors.DEVICE, PhoneSensors.GPS));
+        subscribe(PhoneSensors.DEVICE, PhoneSensors.GPS);
     }
 
 
     @Override
     public void newData(DataMarshal.DataObject dObject) {
+        super.newData(dObject);
+
         if (dObject.dataType != DataMarshal.MessageType.DATA) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;

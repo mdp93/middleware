@@ -6,12 +6,13 @@ import android.util.Pair;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
+import edu.umich.carlabui.appbases.SensorListAppBase;
 
 import java.util.HashMap;
 import java.util.Map;
 
 
-public class AppImpl extends App {
+public class AppImpl extends SensorListAppBase {
     final String TAG = "watchfon_rpm";
     final edu.umich.carlab.watchfon_speed.MiddlewareImpl watchfon_speed = new edu.umich.carlab.watchfon_speed.MiddlewareImpl();
     final edu.umich.carlab.watchfon_gear.MiddlewareImpl watchfon_gear = new edu.umich.carlab.watchfon_gear.MiddlewareImpl();
@@ -39,13 +40,15 @@ public class AppImpl extends App {
         Gear_Ratio.put(6, 0.742);
 
         name = "watchfon_rpm";
-        sensors.add(new Pair<>(watchfon_gear.APP, watchfon_gear.GEAR));
-        sensors.add(new Pair<>(watchfon_speed.APP, watchfon_speed.SPEED));
+        subscribe(watchfon_gear.APP, watchfon_gear.GEAR);
+        subscribe(watchfon_speed.APP, watchfon_speed.SPEED);
     }
 
 
     @Override
     public void newData(DataMarshal.DataObject dObject) {
+        super.newData(dObject);
+
         if (dObject.dataType != DataMarshal.MessageType.DATA) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;

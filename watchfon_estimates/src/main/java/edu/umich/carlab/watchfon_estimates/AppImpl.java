@@ -7,11 +7,12 @@ import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.sensors.PhoneSensors;
+import edu.umich.carlabui.appbases.SensorListAppBase;
 
 import java.util.Map;
 
 
-public class AppImpl extends App {
+public class AppImpl extends SensorListAppBase {
     final String TAG = "watchfon_estimates";
     final edu.umich.carlab.watchfon_speed.MiddlewareImpl watchfon_speed = new edu.umich.carlab.watchfon_speed.MiddlewareImpl();
     final edu.umich.carlab.watchfon_steering.MiddlewareImpl watchfon_steering = new edu.umich.carlab.watchfon_steering.MiddlewareImpl();

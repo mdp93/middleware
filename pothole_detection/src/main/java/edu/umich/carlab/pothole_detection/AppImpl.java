@@ -17,8 +17,10 @@ public class AppImpl extends App {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "pothole_detection";
-        
+
         subscribe(PhoneSensors.DEVICE, PhoneSensors.GPS);
+        subscribe(OBD.DEVICE, OBD.RPM);
+        subscribe(OBD.DEVICE, OBD.RAW_CAN);
     }
 
 
@@ -27,7 +29,7 @@ public class AppImpl extends App {
         super.newData(dObject);
         if (!isValidData(dObject)) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
-        
+
         DataMarshal.DataObject  latestValue = getLatestData(PhoneSensors.DEVICE, PhoneSensors.GPS);
         if (latestValue != null) {
           Map<String, Float> gpsSplit = PhoneSensors.splitValues(latestValue);
