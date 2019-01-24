@@ -27,6 +27,7 @@ public class AppImpl extends SensorListAppBase {
 
     Double injectionMagnitude = 10d, newValue;
 
+
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "watchfon_spoofed_sensors";
@@ -36,6 +37,8 @@ public class AppImpl extends SensorListAppBase {
         subscribe(OpenXcSensors.DEVICE, OpenXcSensors.ODOMETER);
         subscribe(OpenXcSensors.DEVICE, OpenXcSensors.ENGINERPM);
         subscribe(OpenXcSensors.DEVICE, OpenXcSensors.GEAR);
+
+        subscribe("watchfon_intrusion_detection", "attack_value");
     }
 
 
@@ -46,6 +49,13 @@ public class AppImpl extends SensorListAppBase {
         if (dObject.dataType != DataMarshal.MessageType.DATA) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;
+
+        if (
+                dObject.device.equals("watchfon_intrusion_detection") &&
+                dObject.sensor.equals("attack_value")) {
+            injectionMagnitude += 10.0;
+            return;
+        }
 
         newValue = dObject.value[0] + injectionMagnitude;
         DataMarshal.DataObject outputDObject = outputData(

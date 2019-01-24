@@ -1,16 +1,25 @@
 package edu.umich.carlab.watchfon_intrusion_detection;
 
+import android.app.Activity;
 import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
+import edu.umich.carlab.loadable.App;
+import edu.umich.carlab.loadable.Middleware;
 import edu.umich.carlabui.appbases.SensorListAppBase;
+import edu.umich.carlabui.appbases.SensorStream;
 import edu.umich.carlabui.appbases.SensorStreamAppBase;
 
 import java.util.Map;
 
 
-public class AppImpl extends SensorStreamAppBase {
+public class AppImpl extends App {
     final String TAG = "watchfon_intrusion_detection";
+    SensorStream streamComponent;
 
     // Sensors estimated by WatchFon
     final edu.umich.carlab.watchfon_estimates.MiddlewareImpl watchfon_estimates = new edu.umich.carlab.watchfon_estimates.MiddlewareImpl();
@@ -21,7 +30,9 @@ public class AppImpl extends SensorStreamAppBase {
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
-        name = "watchfon_intrusion_detection";
+        streamComponent = new SensorStream(context);
+
+        name = "WatchFon Intrusion Detection";
 
         subscribe(watchfon_estimates.APP, watchfon_estimates.SPEED);
         subscribe(watchfon_estimates.APP, watchfon_estimates.STEERING);
@@ -36,15 +47,15 @@ public class AppImpl extends SensorStreamAppBase {
         subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.ENGINERPM);
         subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.ODOMETER);
         subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.GEAR);
-
-        addLineGraph(watchfon_estimates.APP, watchfon_estimates.STEERING);
-        addLineGraph(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.STEERING);
     }
 
 
     @Override
     public void newData(DataMarshal.DataObject dObject) {
         super.newData(dObject);
+
+        streamComponent.newData(dObject);
+
         if (!isValidData(dObject)) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
 
@@ -55,5 +66,37 @@ public class AppImpl extends SensorStreamAppBase {
             Map<String, Float> reportedSpeedMap = watchfon_spoofed_sensors.splitValues(latestSpoofedSpeed);
             Float reportedSpeed = reportedSpeedMap.get(watchfon_spoofed_sensors.SPEED);
         }
+    }
+
+
+    @Override
+    public View initializeVisualization(Activity parentActivity) {
+        LayoutInflater inflater = parentActivity.getLayoutInflater();
+        View controlWrapper = inflater.inflate(R.layout.watchfon_control, null);
+        Button attackTriggerButton = controlWrapper.findViewById(R.id.trigger_attack_button);
+        attackTriggerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DataMarshal.DataObject d = new DataMarshal.DataObject();
+                d.time = System.currentTimeMillis();
+                d.device = MiddlewareImpl.APP;
+                d.sensor = MiddlewareImpl.ATTACK;
+                d.dataType = DataMarshal.MessageType.DATA;
+                outputData(MiddlewareImpl.APP, d, MiddlewareImpl.ATTACK, 1.0f);
+            }
+        });
+
+        View streamView = streamComponent.initializeVisualization(parentActivity);
+        streamComponent.addLineGraph(
+                watchfon_spoofed_sensors.APP,
+                watchfon_spoofed_sensors.STEERING);
+        FrameLayout visWrapper = controlWrapper.findViewById(R.id.vis_wrapper);
+        visWrapper.addView(streamView);
+        return controlWrapper;
+    }
+
+    @Override
+    public void destroyVisualization() {
+        streamComponent.destroyVisualization();
     }
 }
