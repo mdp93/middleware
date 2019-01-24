@@ -6,6 +6,7 @@ import android.util.Pair;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
+import edu.umich.carlab.loadable.Middleware;
 import edu.umich.carlabui.appbases.SensorListAppBase;
 import edu.umich.carlab.sensors.OpenXcSensors;
 import edu.umich.carlab.sensors.PhoneSensors;
@@ -47,10 +48,16 @@ public class AppImpl extends SensorListAppBase {
         if (dObject.value == null) return;
 
         newValue = dObject.value[0] + injectionMagnitude;
-        outputData(MiddlewareImpl.APP, dObject, dObject.sensor, new Float[]{
-                newValue.floatValue(),
-                injectionMagnitude.floatValue(),
-            }
+        DataMarshal.DataObject outputDObject = outputData(
+                MiddlewareImpl.APP,
+                dObject,
+                dObject.sensor,
+                new Float[]{
+                    newValue.floatValue(),
+                    injectionMagnitude.floatValue(),
+                }
         );
+
+        super.newData(outputDObject);
     }
 }
