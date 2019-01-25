@@ -30,7 +30,9 @@ public class AppImpl extends SensorListAppBase {
 
         name = "watchfon_odometer";
         subscribe(PhoneSensors.DEVICE, PhoneSensors.GPS);
-        distance = loadValue(DISTANCE_KEY, 0d);
+
+        if (context != null)
+            distance = loadValue(DISTANCE_KEY, 0d);
     }
 
 

@@ -16,12 +16,13 @@ import edu.umich.carlabui.appbases.SensorListAppBase;
 import edu.umich.carlabui.appbases.SensorStream;
 import edu.umich.carlabui.appbases.SensorStreamAppBase;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
 public class AppImpl extends App {
     final String TAG = "watchfon_intrusion_detection";
-    SensorStream compareSteeringGraph, compareSpeedGraph;
+
 
     // Sensors estimated by WatchFon
     final edu.umich.carlab.watchfon_estimates.MiddlewareImpl watchfon_estimates =
@@ -32,26 +33,32 @@ public class AppImpl extends App {
             new edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl();
 
 
+
+    String [] all_sensors = {
+            watchfon_estimates.SPEED,
+            watchfon_estimates.STEERING,
+            watchfon_estimates.FUEL,
+            watchfon_estimates.ODOMETER,
+            watchfon_estimates.GEAR,
+            watchfon_estimates.ENGINERPM,
+
+    };
+
+    Map<String, SensorStream> comparisonGraphs;
+
+
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
-        compareSteeringGraph = new SensorStream(context);
-        compareSpeedGraph = new SensorStream(context);
+
+        comparisonGraphs = new HashMap<>();
+        for (String sensor : all_sensors) {
+            comparisonGraphs.put(sensor, new SensorStream(context));
+            subscribe(watchfon_estimates.APP, sensor);
+            subscribe(watchfon_spoofed_sensors.APP, sensor);
+
+        }
 
         name = "WatchFon Intrusion Detection";
-
-        subscribe(watchfon_estimates.APP, watchfon_estimates.SPEED);
-        subscribe(watchfon_estimates.APP, watchfon_estimates.STEERING);
-        subscribe(watchfon_estimates.APP, watchfon_estimates.FUEL);
-        subscribe(watchfon_estimates.APP, watchfon_estimates.ENGINERPM);
-        subscribe(watchfon_estimates.APP, watchfon_estimates.ODOMETER);
-        subscribe(watchfon_estimates.APP, watchfon_estimates.GEAR);
-
-        subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.SPEED);
-        subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.STEERING);
-        subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.FUEL);
-        subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.ENGINERPM);
-        subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.ODOMETER);
-        subscribe(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.GEAR);
     }
 
 
@@ -59,16 +66,27 @@ public class AppImpl extends App {
     public void newData(DataMarshal.DataObject dObject) {
         super.newData(dObject);
 
-        compareSteeringGraph.newData(dObject);
-        compareSpeedGraph.newData(dObject);
 
         if (!isValidData(dObject)) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
+
+        for (String sensor : all_sensors)
+            comparisonGraphs.get(sensor).newData(dObject);
+
     }
 
+    View initializeComparisonGraph(String sensorName) {
+        comparisonGraphs.get(sensorName).addLineGraph(watchfon_spoofed_sensors.APP, sensorName);
+        comparisonGraphs.get(sensorName).addLineGraph(watchfon_estimates.APP, sensorName);
+        View v = comparisonGraphs.get(sensorName).initializeVisualization(parentActivity);
+        v.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 550));
+        return v;
+    }
 
     @Override
     public View initializeVisualization(Activity parentActivity) {
+        super.initializeVisualization(parentActivity);
+
         LayoutInflater inflater = parentActivity.getLayoutInflater();
         View controlWrapper = inflater.inflate(R.layout.watchfon_control, null);
         Button attackTriggerButton = controlWrapper.findViewById(R.id.trigger_attack_button);
@@ -85,26 +103,15 @@ public class AppImpl extends App {
         });
         LinearLayout visWrapper = controlWrapper.findViewById(R.id.vis_wrapper);
 
-        View v;
-
-        compareSteeringGraph.addLineGraph(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.STEERING);
-        compareSteeringGraph.addLineGraph(watchfon_estimates.APP, watchfon_estimates.STEERING);
-        v = compareSteeringGraph.initializeVisualization(parentActivity);
-        v.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 550));
-        visWrapper.addView(v);
-
-        compareSpeedGraph.addLineGraph(watchfon_spoofed_sensors.APP, watchfon_spoofed_sensors.SPEED);
-        compareSpeedGraph.addLineGraph(watchfon_estimates.APP, watchfon_estimates.SPEED);
-        v = compareSpeedGraph.initializeVisualization(parentActivity);
-        v.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 550));
-        visWrapper.addView(v);
+        for (String sensor : all_sensors)
+            visWrapper.addView(initializeComparisonGraph(sensor));
 
         return controlWrapper;
     }
 
     @Override
     public void destroyVisualization() {
-        compareSteeringGraph.destroyVisualization();
-        compareSpeedGraph.destroyVisualization();
+        for (String sensor : all_sensors)
+            comparisonGraphs.get(sensor).destroyVisualization();
     }
 }

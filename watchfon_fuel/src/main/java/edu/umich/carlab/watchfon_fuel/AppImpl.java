@@ -15,7 +15,7 @@ import edu.umich.carlabui.appbases.SensorListAppBase;
 import java.util.Map;
 
 
-public class AppImpl extends SensorListAppBase {
+public class AppImpl extends App {
     final String TAG = "watchfon_fuel";
     final String FUEL_KEY = "fuel";
 
@@ -34,7 +34,9 @@ public class AppImpl extends SensorListAppBase {
         super(cl, context);
         name = "watchfon_fuel";
         sensors.add(new Pair<>(watchfon_odometer.APP, watchfon_odometer.DISTANCE));
-        previousFuelLevel = loadValue(FUEL_KEY, MAX_FUEL_CAPACITY);
+
+        if (context != null)
+            previousFuelLevel = loadValue(FUEL_KEY, MAX_FUEL_CAPACITY);
     }
 
 
@@ -74,17 +76,10 @@ public class AppImpl extends SensorListAppBase {
         return resetButton;
     }
 
-    @Override
-    public void destroyVisualization() {
-
-    }
 
     @Override
     public void shutdown() {
         super.shutdown();
         saveValue(FUEL_KEY, previousFuelLevel);
     }
-
-
-
 }
