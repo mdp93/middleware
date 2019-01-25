@@ -3,7 +3,9 @@ package edu.umich.carlab.watchfon_intrusion_detection;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -29,7 +31,7 @@ import java.util.Map;
 
 
 public class AppImpl extends App {
-    final String TAG = "watchfon_intrusion_detection";
+    final String TAG = "wf-ids";
     final int GRID_WIDTH = 480;
     final int GRID_HEIGHT = 500;
 
@@ -53,6 +55,7 @@ public class AppImpl extends App {
     };
     Map<String, SensorStream> comparisonGraphs;
     Map<String, Button> injectionButtons;
+
     // Map related data
     MapView mapView;
     GoogleMap googleMap;
@@ -62,12 +65,19 @@ public class AppImpl extends App {
     long lastAdded = 0;
     Map<String, Long> lastUpdatedTime;
 
+
+    // Error counters
+    Map<String, Integer> errorCounters;
+    final int MAGNITUDE = 5;
+    final int DURATION = 10;
+
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
 
         comparisonGraphs = new HashMap<>();
         injectionButtons = new HashMap<>();
         lastUpdatedTime = new HashMap<>();
+        errorCounters = new HashMap<>();
 
         for (String sensor : all_sensors) {
             comparisonGraphs.put(sensor, new SensorStream(context));
@@ -75,16 +85,34 @@ public class AppImpl extends App {
             subscribe(watchfon_spoofed_sensors.APP, sensor);
             subscribe(PhoneSensors.DEVICE, PhoneSensors.GPS);
             lastUpdatedTime.put(sensor, 0L);
+            errorCounters.put(sensor, 0);
         }
 
         name = "WatchFon Intrusion Detection";
     }
 
     void setInjectionState(final String sensor, final Boolean state) {
+        if (parentActivity == null) return;
         parentActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 injectionButtons.get(sensor).setPressed(state);
+            }
+        });
+    }
+
+    void setDetectionState(final String sensor, final Boolean state) {
+        if (parentActivity == null) return;
+
+        parentActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Drawable backgroundColor = (state)
+                        ? parentActivity.getDrawable(R.drawable.background_green)
+                        : parentActivity.getDrawable(R.drawable.background_gray);
+
+
+                injectionButtons.get(sensor).setBackground(backgroundColor);
             }
         });
     }
@@ -96,15 +124,43 @@ public class AppImpl extends App {
         if (!isValidData(dObject)) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
 
+        updateCharts(dObject);
+        updateMap(dObject);
+        updateButtons(dObject);
+
+        checkIntrusion(dObject);
+    }
+
+    void checkIntrusion(DataMarshal.DataObject dObject) {
+        String sensor = watchfon_estimates.STEERING;
+        DataMarshal.DataObject latestEstimateSteer = getLatestData(watchfon_estimates.APP, sensor);
+        DataMarshal.DataObject latestSpoofedSteer = getLatestData(watchfon_spoofed_sensors.APP, sensor);
+        if (latestEstimateSteer != null && latestSpoofedSteer != null) {
+            Float estimateSteer = latestEstimateSteer .value[0];
+            Map<String, Float> reportedSteerMap = watchfon_spoofed_sensors.splitValues(latestSpoofedSteer);
+            Float reportedSteer = reportedSteerMap.get(sensor);
+
+            double difference = Math.abs(estimateSteer - reportedSteer);
+            if (difference  > MAGNITUDE) {
+                errorCounters.put(sensor, errorCounters.get(sensor) + 1);
+            } else {
+                errorCounters.put(sensor, 0);
+            }
+
+
+            setDetectionState(sensor, (errorCounters.get(sensor) > DURATION));
+
+//            Log.e(TAG, String.format("Error counter is: %d and diffference is %f" , errorCounters.get(sensor), difference));
+        }
+    }
+
+
+    void updateCharts(DataMarshal.DataObject dObject) {
         for (String sensor : all_sensors)
             comparisonGraphs.get(sensor).newData(dObject);
+    }
 
-        String sensor = dObject.sensor;
-
-
-        // Map updates
-
-        // Update map
+    void updateMap(final DataMarshal.DataObject dObject) {
         if (dObject.device.equals(PhoneSensors.DEVICE) && dObject.sensor.equals(PhoneSensors.GPS)) {
             final Map<String, Float> gpsValue = PhoneSensors.splitValues(dObject);
             if (gpsValue != null && googleMap != null) {
@@ -133,9 +189,12 @@ public class AppImpl extends App {
                 });
             }
         }
+    }
 
-        // Button updates
+    void updateButtons(DataMarshal.DataObject dObject) {
         Long currTime = System.currentTimeMillis();
+        String sensor = dObject.sensor;
+
         if (!injectionButtons.containsKey(sensor)) return;
         if (currTime < lastUpdatedTime.get(sensor) + updateUiInterval) return;
 
@@ -151,10 +210,8 @@ public class AppImpl extends App {
 
             lastUpdatedTime.put(sensor, currTime);
         }
-
-
-
     }
+
 
     View initializeComparisonGraph(String sensorName) {
         comparisonGraphs.get(sensorName).addLineGraph(watchfon_spoofed_sensors.APP, sensorName);
@@ -238,7 +295,7 @@ public class AppImpl extends App {
         for (String sensor : all_sensors)
             comparisonGraphs.get(sensor).destroyVisualization();
 
-        synchronized(googleMap) {
+        synchronized (googleMap) {
             mapView = null;
             googleMap = null;
         }
