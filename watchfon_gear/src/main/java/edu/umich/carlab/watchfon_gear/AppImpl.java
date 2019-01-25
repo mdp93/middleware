@@ -35,5 +35,6 @@ public class AppImpl extends SensorListAppBase {
 
         // TODO. For now we just output a placeholder.
         outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.GEAR, 1f);
+
     }
 }

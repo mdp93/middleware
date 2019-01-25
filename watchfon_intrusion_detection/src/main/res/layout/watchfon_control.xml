@@ -5,24 +5,81 @@
                 android:orientation="vertical"
 >
     <Button
-            android:text="Inject Data"
+            android:text="Run Attack Sequence"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:id="@+id/trigger_attack_button"/>
 
+    <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="10"
+            android:orientation="horizontal"
+            android:columnCount="3"
+            android:id="@+id/injection_buttons">
 
+        <Button
+                android:text="Speed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:id="@+id/speed_injection"/>
+
+        <Button
+                android:text="Steer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:id="@+id/steer_injection"/>
+
+        <Button
+                android:text="Odometer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:id="@+id/odometer_injection"/>
+
+        <Button
+                android:text="Fuel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:id="@+id/fuel_injection"/>
+
+        <Button
+                android:text="Gear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:id="@+id/gear_injection"/>
+
+        <Button
+                android:text="RPM"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:id="@+id/rpm_injection"/>
+
+    </GridLayout>
 
     <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="10">
-        <LinearLayout
+        <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:orientation="horizontal"
+                android:columnCount="3"
                 android:id="@+id/vis_wrapper">
-        </LinearLayout>
+        </GridLayout>
     </ScrollView>
 
 </LinearLayout>

@@ -57,16 +57,31 @@ public class AppImpl extends SensorListAppBase {
             return;
         }
 
-        newValue = dObject.value[0] + injectionMagnitude;
-        DataMarshal.DataObject outputDObject = outputData(
-                MiddlewareImpl.APP,
-                dObject,
-                dObject.sensor,
-                new Float[]{
-                    newValue.floatValue(),
-                    injectionMagnitude.floatValue(),
-                }
-        );
+        DataMarshal.DataObject outputDObject;
+        String sensor = dObject.sensor;
+        if (sensor.equals(OpenXcSensors.STEERING) || sensor.equals(OpenXcSensors.ENGINERPM)) {
+            newValue = dObject.value[0] + injectionMagnitude;
+            outputDObject = outputData(
+                    MiddlewareImpl.APP,
+                    dObject,
+                    sensor,
+                    new Float[]{
+                            newValue.floatValue(),
+                            injectionMagnitude.floatValue(),
+                    }
+            );
+        } else {
+            newValue = (double)dObject.value[0];
+            outputDObject = outputData(
+                    MiddlewareImpl.APP,
+                    dObject,
+                    sensor,
+                    new Float[]{
+                            newValue.floatValue(),
+                            0.0f,
+                    }
+            );
+        }
 
         super.newData(outputDObject);
     }

@@ -5,11 +5,10 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
+import android.widget.*;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
+import edu.umich.carlab.hal.HardwareAbstractionLayer;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.loadable.Middleware;
 import edu.umich.carlabui.appbases.SensorListAppBase;
@@ -22,6 +21,7 @@ import java.util.Map;
 
 public class AppImpl extends App {
     final String TAG = "watchfon_intrusion_detection";
+
 
 
     // Sensors estimated by WatchFon
@@ -45,22 +45,36 @@ public class AppImpl extends App {
     };
 
     Map<String, SensorStream> comparisonGraphs;
+    Map<String, Button> injectionButtons;
 
+    final int updateUiInterval = 250;
+    Map<String, Long> lastUpdatedTime;
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
 
         comparisonGraphs = new HashMap<>();
+        injectionButtons = new HashMap<>();
+        lastUpdatedTime = new HashMap<>();
+
         for (String sensor : all_sensors) {
             comparisonGraphs.put(sensor, new SensorStream(context));
             subscribe(watchfon_estimates.APP, sensor);
             subscribe(watchfon_spoofed_sensors.APP, sensor);
-
+            lastUpdatedTime.put(sensor, 0L);
         }
 
         name = "WatchFon Intrusion Detection";
     }
 
+    void setInjectionState(final String sensor, final Boolean state) {
+        parentActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                injectionButtons.get(sensor).setPressed(state);
+            }
+        });
+    }
 
     @Override
     public void newData(DataMarshal.DataObject dObject) {
@@ -73,13 +87,33 @@ public class AppImpl extends App {
         for (String sensor : all_sensors)
             comparisonGraphs.get(sensor).newData(dObject);
 
+        String sensor = dObject.sensor;
+
+        // UI updates
+        Long currTime = System.currentTimeMillis();
+        if (!injectionButtons.containsKey(sensor)) return;
+        if (currTime < lastUpdatedTime.get(sensor) + updateUiInterval) return;
+
+
+        // If injection is happening, then depress that button
+        if (dObject.device.equals(watchfon_spoofed_sensors.APP)) {
+            Map<String, Float> splitData = watchfon_spoofed_sensors.splitValues(dObject);
+            if (splitData.get(watchfon_spoofed_sensors.INJECTION_MAGNITUDE) != 0) {
+                setInjectionState(sensor, true);
+            } else {
+                setInjectionState(sensor, false);
+            }
+
+            lastUpdatedTime.put(sensor, currTime);
+        }
+
     }
 
     View initializeComparisonGraph(String sensorName) {
         comparisonGraphs.get(sensorName).addLineGraph(watchfon_spoofed_sensors.APP, sensorName);
         comparisonGraphs.get(sensorName).addLineGraph(watchfon_estimates.APP, sensorName);
         View v = comparisonGraphs.get(sensorName).initializeVisualization(parentActivity);
-        v.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 550));
+        v.setLayoutParams(new LinearLayout.LayoutParams(330, 300));
         return v;
     }
 
@@ -101,10 +135,17 @@ public class AppImpl extends App {
                 outputData(MiddlewareImpl.APP, d, MiddlewareImpl.ATTACK, 1.0f);
             }
         });
-        LinearLayout visWrapper = controlWrapper.findViewById(R.id.vis_wrapper);
+        GridLayout visWrapper = controlWrapper.findViewById(R.id.vis_wrapper);
 
         for (String sensor : all_sensors)
             visWrapper.addView(initializeComparisonGraph(sensor));
+
+        injectionButtons.put(watchfon_estimates.SPEED, (Button)controlWrapper.findViewById(R.id.speed_injection));
+        injectionButtons.put(watchfon_estimates.STEERING, (Button)controlWrapper.findViewById(R.id.steer_injection));
+        injectionButtons.put(watchfon_estimates.FUEL, (Button)controlWrapper.findViewById(R.id.fuel_injection));
+        injectionButtons.put(watchfon_estimates.ODOMETER, (Button)controlWrapper.findViewById(R.id.odometer_injection));
+        injectionButtons.put(watchfon_estimates.GEAR, (Button)controlWrapper.findViewById(R.id.gear_injection));
+        injectionButtons.put(watchfon_estimates.ENGINERPM, (Button)controlWrapper.findViewById(R.id.rpm_injection));
 
         return controlWrapper;
     }
