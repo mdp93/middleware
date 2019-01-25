@@ -2,26 +2,36 @@ package edu.umich.carlab.watchfon_intrusion_detection;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.GridLayout;
+import android.widget.LinearLayout;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
-import edu.umich.carlab.hal.HardwareAbstractionLayer;
 import edu.umich.carlab.loadable.App;
-import edu.umich.carlab.loadable.Middleware;
-import edu.umich.carlabui.appbases.SensorListAppBase;
+import edu.umich.carlab.sensors.PhoneSensors;
 import edu.umich.carlabui.appbases.SensorStream;
-import edu.umich.carlabui.appbases.SensorStreamAppBase;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
 public class AppImpl extends App {
     final String TAG = "watchfon_intrusion_detection";
-
+    final int GRID_WIDTH = 480;
+    final int GRID_HEIGHT = 500;
 
 
     // Sensors estimated by WatchFon
@@ -31,10 +41,8 @@ public class AppImpl extends App {
     // Sensors from the vehicle (with optional injection for intrusion detection evaluation)
     final edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl watchfon_spoofed_sensors =
             new edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl();
-
-
-
-    String [] all_sensors = {
+    final int updateUiInterval = 250;
+    String[] all_sensors = {
             watchfon_estimates.SPEED,
             watchfon_estimates.STEERING,
             watchfon_estimates.FUEL,
@@ -43,11 +51,15 @@ public class AppImpl extends App {
             watchfon_estimates.ENGINERPM,
 
     };
-
     Map<String, SensorStream> comparisonGraphs;
     Map<String, Button> injectionButtons;
-
-    final int updateUiInterval = 250;
+    // Map related data
+    MapView mapView;
+    GoogleMap googleMap;
+    PolylineOptions rectOptions;
+    List<LatLng> tripPoints = new ArrayList<>();
+    Polyline polyline;
+    long lastAdded = 0;
     Map<String, Long> lastUpdatedTime;
 
     public AppImpl(CLDataProvider cl, Context context) {
@@ -61,6 +73,7 @@ public class AppImpl extends App {
             comparisonGraphs.put(sensor, new SensorStream(context));
             subscribe(watchfon_estimates.APP, sensor);
             subscribe(watchfon_spoofed_sensors.APP, sensor);
+            subscribe(PhoneSensors.DEVICE, PhoneSensors.GPS);
             lastUpdatedTime.put(sensor, 0L);
         }
 
@@ -77,9 +90,8 @@ public class AppImpl extends App {
     }
 
     @Override
-    public void newData(DataMarshal.DataObject dObject) {
+    public void newData(final DataMarshal.DataObject dObject) {
         super.newData(dObject);
-
 
         if (!isValidData(dObject)) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
@@ -89,7 +101,40 @@ public class AppImpl extends App {
 
         String sensor = dObject.sensor;
 
-        // UI updates
+
+        // Map updates
+
+        // Update map
+        if (dObject.device.equals(PhoneSensors.DEVICE) && dObject.sensor.equals(PhoneSensors.GPS)) {
+            final Map<String, Float> gpsValue = PhoneSensors.splitValues(dObject);
+            if (gpsValue != null && googleMap != null) {
+                parentActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (dObject.time == lastAdded) return;
+                        lastAdded = dObject.time;
+
+                        if (googleMap == null) return;
+                        synchronized (googleMap) {
+                            LatLng currMarker = new LatLng(
+                                    gpsValue.get(PhoneSensors.GPS_LATITUDE),
+                                    gpsValue.get(PhoneSensors.GPS_LONGITUDE));
+                            if (polyline == null) {
+                                rectOptions = new PolylineOptions();
+                                rectOptions.color(Color.BLUE);
+                                rectOptions.width(12);
+                                polyline = googleMap.addPolyline(rectOptions);
+                            }
+                            tripPoints.add(currMarker);
+                            polyline.setPoints(tripPoints);
+                            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currMarker));
+                        }
+                    }
+                });
+            }
+        }
+
+        // Button updates
         Long currTime = System.currentTimeMillis();
         if (!injectionButtons.containsKey(sensor)) return;
         if (currTime < lastUpdatedTime.get(sensor) + updateUiInterval) return;
@@ -107,13 +152,15 @@ public class AppImpl extends App {
             lastUpdatedTime.put(sensor, currTime);
         }
 
+
+
     }
 
     View initializeComparisonGraph(String sensorName) {
         comparisonGraphs.get(sensorName).addLineGraph(watchfon_spoofed_sensors.APP, sensorName);
         comparisonGraphs.get(sensorName).addLineGraph(watchfon_estimates.APP, sensorName);
         View v = comparisonGraphs.get(sensorName).initializeVisualization(parentActivity);
-        v.setLayoutParams(new LinearLayout.LayoutParams(330, 300));
+        v.setLayoutParams(new LinearLayout.LayoutParams(GRID_WIDTH, GRID_HEIGHT));
         return v;
     }
 
@@ -137,22 +184,63 @@ public class AppImpl extends App {
         });
         GridLayout visWrapper = controlWrapper.findViewById(R.id.vis_wrapper);
 
+        initializeMapView();
+        visWrapper.addView(mapView);
+
+
         for (String sensor : all_sensors)
             visWrapper.addView(initializeComparisonGraph(sensor));
 
-        injectionButtons.put(watchfon_estimates.SPEED, (Button)controlWrapper.findViewById(R.id.speed_injection));
-        injectionButtons.put(watchfon_estimates.STEERING, (Button)controlWrapper.findViewById(R.id.steer_injection));
-        injectionButtons.put(watchfon_estimates.FUEL, (Button)controlWrapper.findViewById(R.id.fuel_injection));
-        injectionButtons.put(watchfon_estimates.ODOMETER, (Button)controlWrapper.findViewById(R.id.odometer_injection));
-        injectionButtons.put(watchfon_estimates.GEAR, (Button)controlWrapper.findViewById(R.id.gear_injection));
-        injectionButtons.put(watchfon_estimates.ENGINERPM, (Button)controlWrapper.findViewById(R.id.rpm_injection));
+        injectionButtons.put(watchfon_estimates.SPEED, (Button) controlWrapper.findViewById(R.id.speed_injection));
+        injectionButtons.put(watchfon_estimates.STEERING, (Button) controlWrapper.findViewById(R.id.steer_injection));
+        injectionButtons.put(watchfon_estimates.FUEL, (Button) controlWrapper.findViewById(R.id.fuel_injection));
+        injectionButtons.put(watchfon_estimates.ODOMETER, (Button) controlWrapper.findViewById(R.id.odometer_injection));
+        injectionButtons.put(watchfon_estimates.GEAR, (Button) controlWrapper.findViewById(R.id.gear_injection));
+        injectionButtons.put(watchfon_estimates.ENGINERPM, (Button) controlWrapper.findViewById(R.id.rpm_injection));
 
         return controlWrapper;
+    }
+
+    @Override
+    public void onResume() {
+        if (mapView != null) mapView.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        if (mapView != null) mapView.onPause();
+    }
+
+    void initializeMapView() {
+        mapView = new MapView(context);
+        mapView.setLayoutParams(new LinearLayout.LayoutParams(GRID_WIDTH, GRID_HEIGHT));
+        mapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                AppImpl.this.googleMap = googleMap;
+                googleMap.moveCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                                new LatLng(
+                                        42.2930283,
+                                        -83.7161281),
+                                16)
+                );
+            }
+        });
+
+        // The fragment already called onCreate so it's OK to call this now
+        mapView.onCreate(new Bundle());
+        mapView.onResume();
     }
 
     @Override
     public void destroyVisualization() {
         for (String sensor : all_sensors)
             comparisonGraphs.get(sensor).destroyVisualization();
+
+        synchronized(googleMap) {
+            mapView = null;
+            googleMap = null;
+        }
     }
 }
