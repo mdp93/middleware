@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class MiddlewareImpl extends Middleware {
     public final static String APP = "watchfon_speed";
-    public final static String SPEED = "speed";
+    public final static String SPEED = "speed"; // in kmph
 
     @Override
     public String getName() {

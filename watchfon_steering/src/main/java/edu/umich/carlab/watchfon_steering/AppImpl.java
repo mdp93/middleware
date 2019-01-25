@@ -28,7 +28,7 @@ public class AppImpl extends SensorListAppBase {
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
-        name = "WatchFon/Steering";
+        name = "watchfon_steering";
         subscribe(watchfon_speed.APP, watchfon_speed.SPEED);
         subscribe(world_aligned_imu.APP, world_aligned_imu.GYRO);
     }

@@ -20,9 +20,11 @@ import java.util.Map;
 public class AppImpl extends SensorListAppBase {
     final String TAG = "WatchfonSpeed";
 
+    final float MPS_TO_KMPH = 1/0.621371f;
+
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
-        name = "WatchFon/Speed";
+        name = "watchfon_speed";
         subscribe(PhoneSensors.DEVICE, PhoneSensors.GPS);
     }
 
@@ -36,7 +38,7 @@ public class AppImpl extends SensorListAppBase {
         if (dObject.value == null) return;
 
         Map<String, Float> gpsSplit = PhoneSensors.splitValues(dObject);
-        Float speed = gpsSplit.get(PhoneSensors.GPS_SPEED);
+        Float speed = gpsSplit.get(PhoneSensors.GPS_SPEED) * MPS_TO_KMPH;
         outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.SPEED, speed);
     }
 }

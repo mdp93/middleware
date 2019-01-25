@@ -25,7 +25,7 @@ import java.util.Map;
 public class AppImpl extends SensorListAppBase {
     final String TAG = "watchfon_spoofed_sensors";
 
-    Double injectionMagnitude = 10d, newValue;
+    Double injectionMagnitude = 0d, newValue;
 
 
     public AppImpl(CLDataProvider cl, Context context) {

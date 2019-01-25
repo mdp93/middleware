@@ -14,12 +14,18 @@ import java.util.Map;
 
 public class AppImpl extends SensorListAppBase {
     final String TAG = "watchfon_estimates";
-    final edu.umich.carlab.watchfon_speed.MiddlewareImpl watchfon_speed = new edu.umich.carlab.watchfon_speed.MiddlewareImpl();
-    final edu.umich.carlab.watchfon_steering.MiddlewareImpl watchfon_steering = new edu.umich.carlab.watchfon_steering.MiddlewareImpl();
-    final edu.umich.carlab.watchfon_fuel.MiddlewareImpl watchfon_fuel = new edu.umich.carlab.watchfon_fuel.MiddlewareImpl();
-    final edu.umich.carlab.watchfon_rpm.MiddlewareImpl watchfon_rpm = new edu.umich.carlab.watchfon_rpm.MiddlewareImpl();
-    final edu.umich.carlab.watchfon_odometer.MiddlewareImpl watchfon_odometer = new edu.umich.carlab.watchfon_odometer.MiddlewareImpl();
-    final edu.umich.carlab.watchfon_gear.MiddlewareImpl watchfon_gear = new edu.umich.carlab.watchfon_gear.MiddlewareImpl();
+    final edu.umich.carlab.watchfon_speed.MiddlewareImpl watchfon_speed =
+            new edu.umich.carlab.watchfon_speed.MiddlewareImpl();
+    final edu.umich.carlab.watchfon_steering.MiddlewareImpl watchfon_steering =
+            new edu.umich.carlab.watchfon_steering.MiddlewareImpl();
+    final edu.umich.carlab.watchfon_fuel.MiddlewareImpl watchfon_fuel =
+            new edu.umich.carlab.watchfon_fuel.MiddlewareImpl();
+    final edu.umich.carlab.watchfon_rpm.MiddlewareImpl watchfon_rpm =
+            new edu.umich.carlab.watchfon_rpm.MiddlewareImpl();
+    final edu.umich.carlab.watchfon_odometer.MiddlewareImpl watchfon_odometer =
+            new edu.umich.carlab.watchfon_odometer.MiddlewareImpl();
+    final edu.umich.carlab.watchfon_gear.MiddlewareImpl watchfon_gear =
+            new edu.umich.carlab.watchfon_gear.MiddlewareImpl();
 
 
     public AppImpl(CLDataProvider cl, Context context) {
