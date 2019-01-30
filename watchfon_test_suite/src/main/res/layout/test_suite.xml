@@ -27,7 +27,7 @@
                 android:layout_weight="1"/>
     </LinearLayout>
     <ProgressBar
-            style="?android:attr/progressBarStyleHorizontal"
+            style="android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
@@ -39,36 +39,42 @@
             android:layout_height="0dp"
             android:layout_width="match_parent"
             android:layout_weight="1"
+            android:id="@+id/speed"
             app:name="Speed" />
 
     <edu.umich.carlab.watchfon_test_suite.SensorRow
             android:layout_height="0dp"
             android:layout_width="match_parent"
             android:layout_weight="1"
+            android:id="@+id/steering"
             app:name="Steering" />
 
     <edu.umich.carlab.watchfon_test_suite.SensorRow
             android:layout_height="0dp"
             android:layout_width="match_parent"
             android:layout_weight="1"
+            android:id="@+id/gear"
             app:name="Gear" />
 
     <edu.umich.carlab.watchfon_test_suite.SensorRow
             android:layout_height="0dp"
             android:layout_width="match_parent"
             android:layout_weight="1"
+            android:id="@+id/rpm"
             app:name="RPM" />
 
     <edu.umich.carlab.watchfon_test_suite.SensorRow
             android:layout_height="0dp"
             android:layout_width="match_parent"
             android:layout_weight="1"
+            android:id="@+id/odometer"
             app:name="Odometer" />
 
     <edu.umich.carlab.watchfon_test_suite.SensorRow
             android:layout_height="0dp"
             android:layout_width="match_parent"
             android:layout_weight="1"
+            android:id="@+id/fuel"
             app:name="Fuel" />
 
 </LinearLayout>

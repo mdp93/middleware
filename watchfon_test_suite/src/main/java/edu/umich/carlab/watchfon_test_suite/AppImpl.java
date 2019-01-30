@@ -2,6 +2,7 @@ package edu.umich.carlab.watchfon_test_suite;
 
 import android.app.Activity;
 import android.content.Context;
+import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.sensors.PhoneSensors;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -35,12 +37,18 @@ public class AppImpl extends App {
             estimates.ODOMETER,
             estimates.GEAR,
             estimates.ENGINERPM,
-
     };
+
+
+    boolean visualizationInitialized = false;
+
+    Map<String, SensorRow> sensorRows;
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "WatchFon Test Suite";
+
+        sensorRows = new HashMap<>();
 
         for (String sensor : all_sensors)
             subscribe(spoofed_sensors.APP, sensor);
@@ -54,14 +62,54 @@ public class AppImpl extends App {
         super.newData(dObject);
         if (!isValidData(dObject)) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
+
+
+        String dev = dObject.device;
+        String sen = dObject.sensor;
+
+        if (visualizationInitialized) {
+            if (dev.equals(intrusion_detection.APP) && sen.equals(intrusion_detection.DETECTION)) {
+                Map<String, Float> detectionDetails = intrusion_detection.splitValues(dObject);
+                String sensor = intrusion_detection.ONE_HOT_REVERSE.get(
+                        detectionDetails.get(
+                                intrusion_detection.DETECTION_SENSOR));
+                Boolean sensorDetected = detectionDetails.get(intrusion_detection.DETECTION_FLAG) != 0;
+                SensorRow sensorRow = sensorRows.get(sensor);
+                if (sensorRow != null) {
+                    sensorRow.setDetection(sensorDetected);
+                }
+            } else if (dev.equals(spoofed_sensors.APP)) {
+                Map<String, Float> splitValues = spoofed_sensors.splitValues(dObject);
+                SensorRow sensorRow = sensorRows.get(sen);
+                sensorRow.setInjection(splitValues.get(spoofed_sensors.INJECTION_MAGNITUDE));
+            }
+        }
     }
 
+
+    void initializeSensorRow (String sensor, View layout, int ID) {
+        SensorRow sensorRow = (SensorRow) layout.findViewById(ID);
+        sensorRow.initializeParameters(
+                intrusion_detection.DURATIONS.get(sensor),
+                intrusion_detection.MAGNITUDES.get(sensor)
+        );
+        sensorRows.put(sensor, sensorRow);
+    }
 
     @Override
     public View initializeVisualization(Activity parentActivity) {
         super.initializeVisualization(parentActivity);
         LayoutInflater inflater = parentActivity.getLayoutInflater();
         View layout = inflater.inflate(R.layout.test_suite, null);
+
+        initializeSensorRow(estimates.SPEED, layout, R.id.speed);
+        initializeSensorRow(estimates.STEERING, layout, R.id.steering);
+        initializeSensorRow(estimates.GEAR, layout, R.id.gear);
+        initializeSensorRow(estimates.FUEL, layout, R.id.fuel);
+        initializeSensorRow(estimates.ODOMETER, layout, R.id.odometer);
+        initializeSensorRow(estimates.ENGINERPM, layout, R.id.rpm);
+
+        visualizationInitialized = true;
         return layout;
     }
 }

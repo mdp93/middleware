@@ -21,6 +21,7 @@ public class SensorRow extends FrameLayout {
     private String name;
     private TextView nameTV, injectionTV, detectionTV;
 
+
     public SensorRow(Context context) {
         super(context);
         init(null, 0);
@@ -47,5 +48,26 @@ public class SensorRow extends FrameLayout {
                 attrs, R.styleable.SensorRow, defStyle, 0);
         name = a.getString(R.styleable.SensorRow_name);
         nameTV.setText(name);
+    }
+
+
+    public void initializeParameters (Float duration, Float magnitude) {
+        detectionTV.setText(String.format("(%f, %f)", magnitude, duration));
+    }
+
+    public void setDetection (boolean detected) {
+        detectionTV.setBackground(
+                (detected)
+                ? getContext().getDrawable(R.drawable.background_green)
+                : getContext().getDrawable(R.drawable.background_white));
+    }
+
+    public void setInjection (float value) {
+        injectionTV.setText("" + value);
+        injectionTV.setBackground(
+                (value != 0)
+                ? getContext().getDrawable(R.drawable.background_green)
+                : getContext().getDrawable(R.drawable.background_white)
+        );
     }
 }

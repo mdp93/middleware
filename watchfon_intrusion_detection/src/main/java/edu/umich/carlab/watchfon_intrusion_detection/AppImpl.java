@@ -69,6 +69,8 @@ public class AppImpl extends App {
 
     // Error counters
     Map<String, Integer> errorCounters;
+    Map<String, Long> lastIntrusionChecked;
+    final Long intrusionCheckUpdateInterval = 100L;
 
 
     public AppImpl(CLDataProvider cl, Context context) {
@@ -78,6 +80,7 @@ public class AppImpl extends App {
         injectionButtons = new HashMap<>();
         lastUpdatedTime = new HashMap<>();
         errorCounters = new HashMap<>();
+        lastIntrusionChecked = new HashMap<>();
 
         for (String sensor : all_sensors) {
             comparisonGraphs.put(sensor, new SensorStream(context));
@@ -86,6 +89,7 @@ public class AppImpl extends App {
             subscribe(PhoneSensors.DEVICE, PhoneSensors.GPS);
             lastUpdatedTime.put(sensor, 0L);
             errorCounters.put(sensor, 0);
+            lastIntrusionChecked.put(sensor, 0L);
         }
 
         name = "WatchFon Intrusion Detection";
@@ -128,32 +132,44 @@ public class AppImpl extends App {
         updateMap(dObject);
         updateButtons(dObject);
 
-        checkIntrusion(dObject);
+        checkIntrusion();
     }
 
-    void checkIntrusion(DataMarshal.DataObject dObject) {
-        String sensor = watchfon_estimates.STEERING;
-        DataMarshal.DataObject latestEstimateSteer = getLatestData(watchfon_estimates.APP, sensor);
-        DataMarshal.DataObject latestSpoofedSteer = getLatestData(watchfon_spoofed_sensors.APP, sensor);
-        if (latestEstimateSteer != null && latestSpoofedSteer != null) {
-            Float estimateSteer = latestEstimateSteer .value[0];
-            Map<String, Float> reportedSteerMap = watchfon_spoofed_sensors.splitValues(latestSpoofedSteer);
-            Float reportedSteer = reportedSteerMap.get(sensor);
+    void checkIntrusion() {
 
-            double difference = Math.abs(estimateSteer - reportedSteer);
-            if (difference  > MiddlewareImpl.MAGNITUDES.get(watchfon_estimates.STEERING)) {
-                errorCounters.put(sensor, errorCounters.get(sensor) + 1);
-            } else {
-                errorCounters.put(sensor, 0);
+        // Should only check for intrusion if we have updated data and we haven't already checked
+        Long currTime = System.currentTimeMillis();
+        for (String sensor : all_sensors) {
+            if (currTime < lastIntrusionChecked.get(sensor) + intrusionCheckUpdateInterval) {
+                continue;
             }
 
 
-            boolean fireAlert = (errorCounters.get(sensor) > MiddlewareImpl.DURATIONS.get(watchfon_estimates.STEERING));
-            setDetectionStateUI(sensor, fireAlert);
-            outputData(MiddlewareImpl.APP, MiddlewareImpl.DETECTION, new Float[] {
-                    MiddlewareImpl.ONE_HOT_SENSORS.get(sensor),
-                    fireAlert ? 1f : 0f,
-            });
+            DataMarshal.DataObject latestEstimate = getLatestData(watchfon_estimates.APP, sensor);
+            DataMarshal.DataObject latestSpoofed = getLatestData(watchfon_spoofed_sensors.APP, sensor);
+            if (latestEstimate != null && latestSpoofed != null) {
+                Float estimateSensor = latestEstimate .value[0];
+                Map<String, Float> reportedSensorMap = watchfon_spoofed_sensors.splitValues(latestSpoofed);
+                Float reportedSensor = reportedSensorMap.get(sensor);
+
+                double difference = Math.abs(estimateSensor - reportedSensor);
+                if (difference  > MiddlewareImpl.MAGNITUDES.get(sensor)) {
+                    errorCounters.put(sensor, errorCounters.get(sensor) + 1);
+                } else {
+                    errorCounters.put(sensor, 0);
+                }
+
+
+                // For now, we multiply the "duration" by 10 since the data comes in at 10 Hz anyway.
+                boolean fireAlert = (errorCounters.get(sensor) > MiddlewareImpl.DURATIONS.get(sensor) * 10);
+                setDetectionStateUI(sensor, fireAlert);
+                outputData(MiddlewareImpl.APP, MiddlewareImpl.DETECTION, new Float[] {
+                        MiddlewareImpl.ONE_HOT_SENSORS.get(sensor),
+                        fireAlert ? 1f : 0f,
+                });
+            }
+
+            lastIntrusionChecked.put(sensor, currTime);
         }
     }
 
