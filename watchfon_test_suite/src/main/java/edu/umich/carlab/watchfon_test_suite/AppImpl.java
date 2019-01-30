@@ -39,7 +39,6 @@ public class AppImpl extends App {
             estimates.ENGINERPM,
     };
 
-
     boolean visualizationInitialized = false;
 
     Map<String, SensorRow> sensorRows;
@@ -73,15 +72,28 @@ public class AppImpl extends App {
                 String sensor = intrusion_detection.ONE_HOT_REVERSE.get(
                         detectionDetails.get(
                                 intrusion_detection.DETECTION_SENSOR));
-                Boolean sensorDetected = detectionDetails.get(intrusion_detection.DETECTION_FLAG) != 0;
-                SensorRow sensorRow = sensorRows.get(sensor);
+                final Boolean sensorDetected = detectionDetails.get(intrusion_detection.DETECTION_FLAG) != 0;
+                final SensorRow sensorRow = sensorRows.get(sensor);
                 if (sensorRow != null) {
-                    sensorRow.setDetection(sensorDetected);
+                    parentActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            sensorRow.setDetection(sensorDetected);
+                        }
+                    });
+
                 }
             } else if (dev.equals(spoofed_sensors.APP)) {
-                Map<String, Float> splitValues = spoofed_sensors.splitValues(dObject);
-                SensorRow sensorRow = sensorRows.get(sen);
-                sensorRow.setInjection(splitValues.get(spoofed_sensors.INJECTION_MAGNITUDE));
+                final Map<String, Float> splitValues = spoofed_sensors.splitValues(dObject);
+                final SensorRow sensorRow = sensorRows.get(sen);
+
+                parentActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sensorRow.setInjection(splitValues.get(spoofed_sensors.INJECTION_MAGNITUDE));
+                    }
+                });
+
             }
         }
     }

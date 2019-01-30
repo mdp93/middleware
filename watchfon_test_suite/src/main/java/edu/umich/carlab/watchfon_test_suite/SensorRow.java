@@ -37,6 +37,7 @@ public class SensorRow extends FrameLayout {
         init(attrs, defStyle);
     }
 
+
     private void init(AttributeSet attrs, int defStyle) {
         inflate(getContext(), R.layout.sensor_row, this);
         nameTV = findViewById(R.id.sensor_name);
@@ -49,7 +50,6 @@ public class SensorRow extends FrameLayout {
         name = a.getString(R.styleable.SensorRow_name);
         nameTV.setText(name);
     }
-
 
     public void initializeParameters (Float duration, Float magnitude) {
         detectionTV.setText(String.format("(%f, %f)", magnitude, duration));
