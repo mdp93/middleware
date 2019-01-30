@@ -1,0 +1,5 @@
+<resources>
+    <declare-styleable name="SensorRow">
+        <attr name="name" format="string"/>
+    </declare-styleable>
+</resources>

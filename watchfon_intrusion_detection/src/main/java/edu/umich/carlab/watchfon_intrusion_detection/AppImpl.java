@@ -21,6 +21,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
+import edu.umich.carlab.loadable.Middleware;
 import edu.umich.carlab.sensors.PhoneSensors;
 import edu.umich.carlabui.appbases.SensorStream;
 
@@ -68,8 +69,7 @@ public class AppImpl extends App {
 
     // Error counters
     Map<String, Integer> errorCounters;
-    final int MAGNITUDE = 5;
-    final int DURATION = 10;
+
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
@@ -101,7 +101,7 @@ public class AppImpl extends App {
         });
     }
 
-    void setDetectionState(final String sensor, final Boolean state) {
+    void setDetectionStateUI(final String sensor, final Boolean state) {
         if (parentActivity == null) return;
 
         parentActivity.runOnUiThread(new Runnable() {
@@ -141,16 +141,19 @@ public class AppImpl extends App {
             Float reportedSteer = reportedSteerMap.get(sensor);
 
             double difference = Math.abs(estimateSteer - reportedSteer);
-            if (difference  > MAGNITUDE) {
+            if (difference  > MiddlewareImpl.MAGNITUDES.get(watchfon_estimates.STEERING)) {
                 errorCounters.put(sensor, errorCounters.get(sensor) + 1);
             } else {
                 errorCounters.put(sensor, 0);
             }
 
 
-            setDetectionState(sensor, (errorCounters.get(sensor) > DURATION));
-
-//            Log.e(TAG, String.format("Error counter is: %d and diffference is %f" , errorCounters.get(sensor), difference));
+            boolean fireAlert = (errorCounters.get(sensor) > MiddlewareImpl.DURATIONS.get(watchfon_estimates.STEERING));
+            setDetectionStateUI(sensor, fireAlert);
+            outputData(MiddlewareImpl.APP, MiddlewareImpl.DETECTION, new Float[] {
+                    MiddlewareImpl.ONE_HOT_SENSORS.get(sensor),
+                    fireAlert ? 1f : 0f,
+            });
         }
     }
 
