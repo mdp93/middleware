@@ -9,4 +9,4 @@ include ':world_aligned_imu',
 
 
 project(':libcarlab').projectDir = new File(settingsDir, '../carlab/libcarlab')
-project(':carlabui').projectDir = new File(settingsDir, '../carlab/carlabui')
+project(':carlabui').projectDir = new File(settingsDir, '../carlab/carlabui'), ':watchfon_test_suite'
