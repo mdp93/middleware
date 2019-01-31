@@ -16,6 +16,7 @@ import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.sensors.PhoneSensors;
+import edu.umich.carlab.watchfon_spoofed_sensors.Attack;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,30 +49,19 @@ public class AppImpl extends App {
 
     Button runAttack;
     Spinner attackSelection;
-    int attackStage = 0;
+
     ProgressBar attackProgress;
     Map<String, SensorRow> sensorRows;
 
-    Handler attackRunHandler;
 
+    Attack attacker;
 
-    Runnable updateAttackStep = new Runnable() {
-        @Override
-        public void run() {
-            attackStage += 1;
-            attackProgress.setProgress(attackStage);
-            if (attackStage < 30) {
-                attackRunHandler.postDelayed(updateAttackStep, 1000);
-            }
-        }
-    };
 
     View.OnClickListener runAttackListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            attackProgress.setMax(30);
-            attackStage = 0;
-            attackRunHandler.post(updateAttackStep);
+            int attackSelectionId = attackSelection.getSelectedItemPosition();
+            attacker.runAttack(attackSelectionId);
         }
     };
 
@@ -150,16 +140,10 @@ public class AppImpl extends App {
         LayoutInflater inflater = parentActivity.getLayoutInflater();
         View layout = inflater.inflate(R.layout.test_suite, null);
 
-        parentActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                attackRunHandler = new Handler();
-            }
-        });
-
         runAttack = layout.findViewById(R.id.attack_start);
         attackSelection = layout.findViewById(R.id.attack_selection);
         attackProgress = layout.findViewById(R.id.attack_progress);
+        attacker = new Attack(parentActivity, attackProgress);
         runAttack.setOnClickListener(runAttackListener);
 
         initializeSensorRow(estimates.SPEED, layout, R.id.speed);
