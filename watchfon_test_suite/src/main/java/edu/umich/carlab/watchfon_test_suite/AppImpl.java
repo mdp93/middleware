@@ -2,33 +2,24 @@ package edu.umich.carlab.watchfon_test_suite;
 
 import android.app.Activity;
 import android.content.Context;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
-import android.os.Handler;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.GridLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
-import edu.umich.carlab.sensors.PhoneSensors;
 import edu.umich.carlab.watchfon_spoofed_sensors.Attack;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
+import static edu.umich.carlab.watchfon_intrusion_detection.MiddlewareImpl.*;
+import static edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl.*;
 
 public class AppImpl extends App {
     final String TAG = "watchfon_test_suite";
-
-    final edu.umich.carlab.watchfon_estimates.MiddlewareImpl estimates =
-            new edu.umich.carlab.watchfon_estimates.MiddlewareImpl();
 
     final edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl spoofed_sensors =
             new edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl();
@@ -36,28 +27,15 @@ public class AppImpl extends App {
     final edu.umich.carlab.watchfon_intrusion_detection.MiddlewareImpl intrusion_detection =
             new edu.umich.carlab.watchfon_intrusion_detection.MiddlewareImpl();
 
-    String[] all_sensors = {
-            estimates.SPEED,
-            estimates.STEERING,
-            estimates.FUEL,
-            estimates.ODOMETER,
-            estimates.GEAR,
-            estimates.ENGINERPM,
-    };
-
-    boolean visualizationInitialized = false;
-
-    Button runAttack;
-    Spinner attackSelection;
-
-    ProgressBar attackProgress;
-    Map<String, SensorRow> sensorRows;
+    private boolean visualizationInitialized = false;
+    private Spinner attackSelection;
+    private Map<String, SensorRow> sensorRows;
 
 
-    Attack attacker;
+    private Attack attacker;
 
 
-    View.OnClickListener runAttackListener = new View.OnClickListener() {
+    private View.OnClickListener runAttackListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             int attackSelectionId = attackSelection.getSelectedItemPosition();
@@ -71,15 +49,23 @@ public class AppImpl extends App {
         foregroundApp = true;
         sensorRows = new HashMap<>();
 
+        String[] all_sensors = {
+                SPEED,
+                STEERING,
+                FUEL,
+                ODOMETER,
+                GEAR,
+                ENGINERPM,
+        };
 
         for (String sensor : all_sensors)
             subscribe(
-                spoofed_sensors.APP,
-                sensor);
+                    spoofed_sensors.APP,
+                    sensor);
 
         subscribe(
-            intrusion_detection.APP,
-            intrusion_detection.DETECTION);
+                intrusion_detection.APP,
+                DETECTION);
     }
 
 
@@ -94,12 +80,11 @@ public class AppImpl extends App {
         String sen = dObject.sensor;
 
         if (visualizationInitialized) {
-            if (dev.equals(intrusion_detection.APP) && sen.equals(intrusion_detection.DETECTION)) {
+            if (dev.equals(intrusion_detection.APP) && sen.equals(DETECTION)) {
                 Map<String, Float> detectionDetails = intrusion_detection.splitValues(dObject);
-                String sensor = intrusion_detection.ONE_HOT_REVERSE.get(
-                        detectionDetails.get(
-                                intrusion_detection.DETECTION_SENSOR));
-                final Boolean sensorDetected = detectionDetails.get(intrusion_detection.DETECTION_FLAG) != 0;
+                String sensor = ONE_HOT_REVERSE.get(
+                        detectionDetails.get(DETECTION_SENSOR));
+                final Boolean sensorDetected = detectionDetails.get(DETECTION_FLAG) != 0;
                 final SensorRow sensorRow = sensorRows.get(sensor);
                 if (sensorRow != null) {
                     parentActivity.runOnUiThread(new Runnable() {
@@ -109,6 +94,10 @@ public class AppImpl extends App {
                         }
                     });
                 }
+
+                if (attacker != null) {
+                    attacker.attackDetected(sensor, sensorDetected);
+                }
             } else if (dev.equals(spoofed_sensors.APP)) {
                 final Map<String, Float> splitValues = spoofed_sensors.splitValues(dObject);
                 final SensorRow sensorRow = sensorRows.get(sen);
@@ -116,7 +105,7 @@ public class AppImpl extends App {
                 parentActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        sensorRow.setInjection(splitValues.get(spoofed_sensors.INJECTION_MAGNITUDE));
+                        sensorRow.setInjection(splitValues.get(INJECTION_MAGNITUDE));
                     }
                 });
 
@@ -125,11 +114,11 @@ public class AppImpl extends App {
     }
 
 
-    void initializeSensorRow (String sensor, View layout, int ID) {
+    void initializeSensorRow(String sensor, View layout, int ID) {
         SensorRow sensorRow = layout.findViewById(ID);
         sensorRow.initializeParameters(
-                intrusion_detection.DURATIONS.get(sensor),
-                intrusion_detection.MAGNITUDES.get(sensor)
+                DURATIONS.get(sensor),
+                MAGNITUDES.get(sensor)
         );
         sensorRows.put(sensor, sensorRow);
     }
@@ -140,18 +129,18 @@ public class AppImpl extends App {
         LayoutInflater inflater = parentActivity.getLayoutInflater();
         View layout = inflater.inflate(R.layout.test_suite, null);
 
-        runAttack = layout.findViewById(R.id.attack_start);
+        Button runAttack = layout.findViewById(R.id.attack_start);
         attackSelection = layout.findViewById(R.id.attack_selection);
-        attackProgress = layout.findViewById(R.id.attack_progress);
-        attacker = new Attack(parentActivity, attackProgress);
+        ProgressBar attackProgress = layout.findViewById(R.id.attack_progress);
+        attacker = new Attack(parentActivity, attackProgress, this);
         runAttack.setOnClickListener(runAttackListener);
 
-        initializeSensorRow(estimates.SPEED, layout, R.id.speed);
-        initializeSensorRow(estimates.STEERING, layout, R.id.steering);
-        initializeSensorRow(estimates.GEAR, layout, R.id.gear);
-        initializeSensorRow(estimates.FUEL, layout, R.id.fuel);
-        initializeSensorRow(estimates.ODOMETER, layout, R.id.odometer);
-        initializeSensorRow(estimates.ENGINERPM, layout, R.id.rpm);
+        initializeSensorRow(SPEED, layout, R.id.speed);
+        initializeSensorRow(STEERING, layout, R.id.steering);
+        initializeSensorRow(GEAR, layout, R.id.gear);
+        initializeSensorRow(FUEL, layout, R.id.fuel);
+        initializeSensorRow(ODOMETER, layout, R.id.odometer);
+        initializeSensorRow(ENGINERPM, layout, R.id.rpm);
 
         visualizationInitialized = true;
         return layout;

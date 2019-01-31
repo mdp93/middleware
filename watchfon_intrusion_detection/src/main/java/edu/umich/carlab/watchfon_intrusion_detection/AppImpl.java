@@ -165,7 +165,7 @@ public class AppImpl extends App {
                 boolean fireAlert = (errorCounters.get(sensor) > MiddlewareImpl.DURATIONS.get(sensor) * 10);
                 setDetectionStateUI(sensor, fireAlert);
                 outputData(MiddlewareImpl.APP, MiddlewareImpl.DETECTION, new Float[] {
-                        MiddlewareImpl.ONE_HOT_SENSORS.get(sensor),
+                        watchfon_spoofed_sensors.ONE_HOT_SENSORS.get(sensor),
                         fireAlert ? 1f : 0f,
                 });
             }

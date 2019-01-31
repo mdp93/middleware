@@ -15,32 +15,12 @@ public class MiddlewareImpl extends Middleware {
     public final static String DETECTION_FLAG = "detection_flag";
 
 
-    public final static Map<String, Float> ONE_HOT_SENSORS = new HashMap<>();
-    public final static Map<Float, String> ONE_HOT_REVERSE = new HashMap<>();
     public final static Map<String, Float> DURATIONS = new HashMap<>();
     public final static Map<String, Float> MAGNITUDES = new HashMap<>();
 
     static {
         edu.umich.carlab.watchfon_estimates.MiddlewareImpl watchfon_estimates =
                 new edu.umich.carlab.watchfon_estimates.MiddlewareImpl();
-
-        ONE_HOT_SENSORS.put(watchfon_estimates.SPEED, 1.0f);
-        ONE_HOT_SENSORS.put(watchfon_estimates.STEERING, 2.0f);
-        ONE_HOT_SENSORS.put(watchfon_estimates.GEAR, 3.0f);
-        ONE_HOT_SENSORS.put(watchfon_estimates.ENGINERPM, 4.0f);
-        ONE_HOT_SENSORS.put(watchfon_estimates.ODOMETER, 5.0f);
-        ONE_HOT_SENSORS.put(watchfon_estimates.FUEL, 6.0f);
-
-        ONE_HOT_REVERSE.put(1.0f, watchfon_estimates.SPEED);
-        ONE_HOT_REVERSE.put(2.0f, watchfon_estimates.STEERING);
-        ONE_HOT_REVERSE.put(3.0f, watchfon_estimates.GEAR);
-        ONE_HOT_REVERSE.put(4.0f, watchfon_estimates.ENGINERPM);
-        ONE_HOT_REVERSE.put(5.0f, watchfon_estimates.ODOMETER);
-        ONE_HOT_REVERSE.put(6.0f, watchfon_estimates.FUEL);
-
-
-
-
 
         // In seconds
         DURATIONS.put(watchfon_estimates.SPEED, 1.1f);

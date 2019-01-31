@@ -7,5 +7,6 @@
         <item>Gradual, Steering, 10 deg.</item>
         <item>Sudden, Speed, 4 kmph</item>
         <item>Sudden, Steering, -10 deg.</item>
+        <item>Null no attack</item>
     </string-array>
 </resources>
