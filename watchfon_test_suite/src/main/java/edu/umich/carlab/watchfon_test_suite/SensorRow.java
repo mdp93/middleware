@@ -52,7 +52,7 @@ public class SensorRow extends FrameLayout {
     }
 
     public void initializeParameters (Float duration, Float magnitude) {
-        detectionTV.setText(String.format("(%f, %f)", magnitude, duration));
+        detectionTV.setText(String.format("(%.02f, %.02f)", magnitude, duration));
     }
 
     public void setDetection (boolean detected) {

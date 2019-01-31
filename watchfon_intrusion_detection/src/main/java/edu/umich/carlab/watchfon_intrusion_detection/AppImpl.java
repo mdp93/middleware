@@ -76,6 +76,8 @@ public class AppImpl extends App {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
 
+        foregroundApp = true;
+
         comparisonGraphs = new HashMap<>();
         injectionButtons = new HashMap<>();
         lastUpdatedTime = new HashMap<>();
@@ -144,11 +146,10 @@ public class AppImpl extends App {
                 continue;
             }
 
-
             DataMarshal.DataObject latestEstimate = getLatestData(watchfon_estimates.APP, sensor);
             DataMarshal.DataObject latestSpoofed = getLatestData(watchfon_spoofed_sensors.APP, sensor);
             if (latestEstimate != null && latestSpoofed != null) {
-                Float estimateSensor = latestEstimate .value[0];
+                Float estimateSensor = latestEstimate.value[0];
                 Map<String, Float> reportedSensorMap = watchfon_spoofed_sensors.splitValues(latestSpoofed);
                 Float reportedSensor = reportedSensorMap.get(sensor);
 

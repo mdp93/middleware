@@ -35,7 +35,7 @@ public class AppImpl extends SensorListAppBase {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
 
-        name = "Phone Vehicle Alignment Estimation";
+        name = "world_aligned_imu";
         subscribe(PhoneSensors.DEVICE, PhoneSensors.GRAVITY);
         subscribe(PhoneSensors.DEVICE, PhoneSensors.MAGNET);
         subscribe(PhoneSensors.DEVICE, PhoneSensors.GYRO);

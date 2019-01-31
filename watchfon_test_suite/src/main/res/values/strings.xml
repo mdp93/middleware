@@ -1,1 +1,11 @@
-<resources><string name='app_name'>watchfon_test_suite</string></resources>
+<resources>
+    <string name='app_name'>watchfon_test_suite</string>
+
+    <string-array name="attacks_array">
+        <item>Delta, Speed, +10 kmph</item>
+        <item>Gradual, Speed, 4 kmph</item>
+        <item>Gradual, Steering, 10 deg.</item>
+        <item>Sudden, Speed, 4 kmph</item>
+        <item>Sudden, Steering, -10 deg.</item>
+    </string-array>
+</resources>

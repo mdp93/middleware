@@ -46,7 +46,7 @@ public class AppImpl extends App {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "WatchFon Test Suite";
-
+        foregroundApp = true;
         sensorRows = new HashMap<>();
 
         for (String sensor : all_sensors)
@@ -81,7 +81,6 @@ public class AppImpl extends App {
                             sensorRow.setDetection(sensorDetected);
                         }
                     });
-
                 }
             } else if (dev.equals(spoofed_sensors.APP)) {
                 final Map<String, Float> splitValues = spoofed_sensors.splitValues(dObject);
@@ -100,7 +99,7 @@ public class AppImpl extends App {
 
 
     void initializeSensorRow (String sensor, View layout, int ID) {
-        SensorRow sensorRow = (SensorRow) layout.findViewById(ID);
+        SensorRow sensorRow = layout.findViewById(ID);
         sensorRow.initializeParameters(
                 intrusion_detection.DURATIONS.get(sensor),
                 intrusion_detection.MAGNITUDES.get(sensor)
