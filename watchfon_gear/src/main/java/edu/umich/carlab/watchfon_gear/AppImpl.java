@@ -21,6 +21,7 @@ public class AppImpl extends SensorListAppBase {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "watchfon_gear";
+        middlewareName = MiddlewareImpl.APP;
         subscribe(world_aligned_imu.APP, world_aligned_imu.ACCEL);
         subscribe(watchfon_speed.APP, watchfon_speed.SPEED);
     }

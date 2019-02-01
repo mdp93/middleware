@@ -77,6 +77,7 @@ public class AppImpl extends App {
         super(cl, context);
 
         foregroundApp = true;
+        middlewareName = MiddlewareImpl.APP;
 
         comparisonGraphs = new HashMap<>();
         injectionButtons = new HashMap<>();

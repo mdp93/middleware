@@ -25,6 +25,7 @@ public class AppImpl extends SensorListAppBase {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "watchfon_speed";
+        middlewareName = MiddlewareImpl.APP;
         subscribe(PhoneSensors.DEVICE, PhoneSensors.GPS);
     }
 

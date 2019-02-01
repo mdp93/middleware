@@ -33,6 +33,7 @@ public class AppImpl extends App {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "watchfon_fuel";
+        middlewareName = MiddlewareImpl.APP;
         sensors.add(new Pair<>(watchfon_odometer.APP, watchfon_odometer.DISTANCE));
 
         if (context != null)

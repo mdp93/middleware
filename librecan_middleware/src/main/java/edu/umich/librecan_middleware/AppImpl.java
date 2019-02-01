@@ -22,6 +22,7 @@ public class AppImpl extends SensorListAppBase {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "librecan_middleware";
+        middlewareName = MiddlewareImpl.APP;
 
         subscribe(world_aligned_imu.APP, world_aligned_imu.GYRO);
         subscribe(OpenXcSensors.DEVICE, OpenXcSensors.SPEED);

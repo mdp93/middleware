@@ -46,6 +46,7 @@ public class AppImpl extends App {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "WatchFon Test Suite";
+        middlewareName = MiddlewareImpl.APP;
         foregroundApp = true;
         sensorRows = new HashMap<>();
 

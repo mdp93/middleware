@@ -36,6 +36,7 @@ public class AppImpl extends SensorListAppBase {
         super(cl, context);
 
         name = "world_aligned_imu";
+        middlewareName = MiddlewareImpl.APP;
         subscribe(PhoneSensors.DEVICE, PhoneSensors.GRAVITY);
         subscribe(PhoneSensors.DEVICE, PhoneSensors.MAGNET);
         subscribe(PhoneSensors.DEVICE, PhoneSensors.GYRO);

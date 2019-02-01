@@ -29,6 +29,7 @@ public class AppImpl extends SensorListAppBase {
         currLoc = new Location("");
 
         name = "watchfon_odometer";
+        middlewareName = MiddlewareImpl.APP;
         subscribe(PhoneSensors.DEVICE, PhoneSensors.GPS);
 
         if (context != null)

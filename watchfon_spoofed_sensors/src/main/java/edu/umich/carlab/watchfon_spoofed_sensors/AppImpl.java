@@ -56,6 +56,7 @@ public class AppImpl extends SensorListAppBase {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "watchfon_spoofed_sensors";
+        middlewareName = MiddlewareImpl.APP;
 
         injectionMagnitudes = new HashMap<>();
         injectionTypes = new HashMap<>();

@@ -40,6 +40,7 @@ public class AppImpl extends SensorListAppBase {
         Gear_Ratio.put(6, 0.742);
 
         name = "watchfon_rpm";
+        middlewareName = MiddlewareImpl.APP;
         subscribe(watchfon_gear.APP, watchfon_gear.GEAR);
         subscribe(watchfon_speed.APP, watchfon_speed.SPEED);
     }
