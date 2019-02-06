@@ -3,12 +3,9 @@ package edu.umich.carlab.watchfon_intrusion_detection;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -21,7 +18,6 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
-import edu.umich.carlab.loadable.Middleware;
 import edu.umich.carlab.sensors.PhoneSensors;
 import edu.umich.carlabui.appbases.SensorStream;
 
@@ -44,7 +40,8 @@ public class AppImpl extends App {
     // Sensors from the vehicle (with optional injection for intrusion detection evaluation)
     final edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl watchfon_spoofed_sensors =
             new edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl();
-    final int updateUiInterval = 250;
+
+    final Long intrusionCheckUpdateInterval = 100L;
     String[] all_sensors = {
             watchfon_estimates.SPEED,
             watchfon_estimates.STEERING,
@@ -55,8 +52,6 @@ public class AppImpl extends App {
 
     };
     Map<String, SensorStream> comparisonGraphs;
-    Map<String, Button> injectionButtons;
-
     // Map related data
     MapView mapView;
     GoogleMap googleMap;
@@ -65,12 +60,9 @@ public class AppImpl extends App {
     Polyline polyline;
     long lastAdded = 0;
     Map<String, Long> lastUpdatedTime;
-
-
     // Error counters
     Map<String, Integer> errorCounters;
     Map<String, Long> lastIntrusionChecked;
-    final Long intrusionCheckUpdateInterval = 100L;
 
 
     public AppImpl(CLDataProvider cl, Context context) {
@@ -80,7 +72,6 @@ public class AppImpl extends App {
         middlewareName = MiddlewareImpl.APP;
 
         comparisonGraphs = new HashMap<>();
-        injectionButtons = new HashMap<>();
         lastUpdatedTime = new HashMap<>();
         errorCounters = new HashMap<>();
         lastIntrusionChecked = new HashMap<>();
@@ -95,34 +86,9 @@ public class AppImpl extends App {
             lastIntrusionChecked.put(sensor, 0L);
         }
 
-        name = "WatchFon Intrusion Detection";
+        name = "WatchFon Dashboard";
     }
 
-    void setInjectionState(final String sensor, final Boolean state) {
-        if (parentActivity == null) return;
-        parentActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                injectionButtons.get(sensor).setPressed(state);
-            }
-        });
-    }
-
-    void setDetectionStateUI(final String sensor, final Boolean state) {
-        if (parentActivity == null) return;
-
-        parentActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Drawable backgroundColor = (state)
-                        ? parentActivity.getDrawable(R.drawable.background_green)
-                        : parentActivity.getDrawable(R.drawable.background_gray);
-
-
-                injectionButtons.get(sensor).setBackground(backgroundColor);
-            }
-        });
-    }
 
     @Override
     public void newData(final DataMarshal.DataObject dObject) {
@@ -133,8 +99,6 @@ public class AppImpl extends App {
 
         updateCharts(dObject);
         updateMap(dObject);
-        updateButtons(dObject);
-
         checkIntrusion();
     }
 
@@ -155,7 +119,7 @@ public class AppImpl extends App {
                 Float reportedSensor = reportedSensorMap.get(sensor);
 
                 double difference = Math.abs(estimateSensor - reportedSensor);
-                if (difference  > MiddlewareImpl.MAGNITUDES.get(sensor)) {
+                if (difference > MiddlewareImpl.MAGNITUDES.get(sensor)) {
                     errorCounters.put(sensor, errorCounters.get(sensor) + 1);
                 } else {
                     errorCounters.put(sensor, 0);
@@ -164,8 +128,8 @@ public class AppImpl extends App {
 
                 // For now, we multiply the "duration" by 10 since the data comes in at 10 Hz anyway.
                 boolean fireAlert = (errorCounters.get(sensor) > MiddlewareImpl.DURATIONS.get(sensor) * 10);
-                setDetectionStateUI(sensor, fireAlert);
-                outputData(MiddlewareImpl.APP, MiddlewareImpl.DETECTION, new Float[] {
+
+                outputData(MiddlewareImpl.APP, MiddlewareImpl.DETECTION, new Float[]{
                         watchfon_spoofed_sensors.ONE_HOT_SENSORS.get(sensor),
                         fireAlert ? 1f : 0f,
                 });
@@ -212,27 +176,6 @@ public class AppImpl extends App {
         }
     }
 
-    void updateButtons(DataMarshal.DataObject dObject) {
-        Long currTime = System.currentTimeMillis();
-        String sensor = dObject.sensor;
-
-        if (!injectionButtons.containsKey(sensor)) return;
-        if (currTime < lastUpdatedTime.get(sensor) + updateUiInterval) return;
-
-
-        // If injection is happening, then depress that button
-        if (dObject.device.equals(watchfon_spoofed_sensors.APP)) {
-            Map<String, Float> splitData = watchfon_spoofed_sensors.splitValues(dObject);
-            if (splitData.get(watchfon_spoofed_sensors.INJECTION_MAGNITUDE) != 0) {
-                setInjectionState(sensor, true);
-            } else {
-                setInjectionState(sensor, false);
-            }
-
-            lastUpdatedTime.put(sensor, currTime);
-        }
-    }
-
 
     View initializeComparisonGraph(String sensorName) {
         comparisonGraphs.get(sensorName).addLineGraph(watchfon_spoofed_sensors.APP, sensorName);
@@ -248,18 +191,6 @@ public class AppImpl extends App {
 
         LayoutInflater inflater = parentActivity.getLayoutInflater();
         View controlWrapper = inflater.inflate(R.layout.watchfon_control, null);
-        Button attackTriggerButton = controlWrapper.findViewById(R.id.trigger_attack_button);
-        attackTriggerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DataMarshal.DataObject d = new DataMarshal.DataObject();
-                d.time = System.currentTimeMillis();
-                d.device = MiddlewareImpl.APP;
-                d.sensor = MiddlewareImpl.ATTACK;
-                d.dataType = DataMarshal.MessageType.DATA;
-                outputData(MiddlewareImpl.APP, d, MiddlewareImpl.ATTACK, 1.0f);
-            }
-        });
         GridLayout visWrapper = controlWrapper.findViewById(R.id.vis_wrapper);
 
         initializeMapView();
@@ -268,13 +199,6 @@ public class AppImpl extends App {
 
         for (String sensor : all_sensors)
             visWrapper.addView(initializeComparisonGraph(sensor));
-
-        injectionButtons.put(watchfon_estimates.SPEED, (Button) controlWrapper.findViewById(R.id.speed_injection));
-        injectionButtons.put(watchfon_estimates.STEERING, (Button) controlWrapper.findViewById(R.id.steer_injection));
-        injectionButtons.put(watchfon_estimates.FUEL, (Button) controlWrapper.findViewById(R.id.fuel_injection));
-        injectionButtons.put(watchfon_estimates.ODOMETER, (Button) controlWrapper.findViewById(R.id.odometer_injection));
-        injectionButtons.put(watchfon_estimates.GEAR, (Button) controlWrapper.findViewById(R.id.gear_injection));
-        injectionButtons.put(watchfon_estimates.ENGINERPM, (Button) controlWrapper.findViewById(R.id.rpm_injection));
 
         return controlWrapper;
     }

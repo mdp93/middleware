@@ -15,15 +15,14 @@ import java.util.Map;
 import static edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl.*;
 
 public class Attack {
-    final int TOTAL_ATTACK_STEPS = 30;
     final int SLEEP_BETWEEN_STEPS = 250;
-    final int START_ATTACK_AT = 15;
     final String TAG = "Attacker";
     private Handler attackRunHandler;
     private int attackStage = 0;
     private Map<String, Float> startingValues;
     private Activity activity;
     private App parentApp;
+    private boolean initializedAttack = false;
     private ProgressBar attackProgress;
     private Map<String, Boolean> ongoingAttacks;
     private List<AttackSpec> attackSpecs;
@@ -32,6 +31,21 @@ public class Attack {
     private Map<String, Long> firstDetectionTimeMap;
     private Map<String, Boolean> attackInitialized;
     private Map<String, Long> attackStartingTimes;
+
+    // Sensors from the vehicle (with optional injection for intrusion detection evaluation)
+    final edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl watchfon_spoofed_sensors =
+            new edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl();
+
+    String[] all_sensors = {
+            watchfon_spoofed_sensors.SPEED,
+            watchfon_spoofed_sensors.STEERING,
+            watchfon_spoofed_sensors.FUEL,
+            watchfon_spoofed_sensors.ODOMETER,
+            watchfon_spoofed_sensors.GEAR,
+            watchfon_spoofed_sensors.ENGINERPM,
+
+    };
+
     Runnable stepAttack = new Runnable() {
         @Override
         public void run() {
@@ -48,8 +62,11 @@ public class Attack {
 
             Long currTime = System.currentTimeMillis();
             attackStage += 1;
-            if (attackProgress != null)
+            if (attackProgress != null) {
                 attackProgress.setProgress(attackStage);
+                Log.e(TAG, "Updating progress: " + attackStage);
+                Log.e(TAG, "Time is: " + currTime + " and end time was " + endAttackerThreadAtTime);
+            }
 
             String sensor;
             Long attackStartTime, attackEndTime;
@@ -96,6 +113,7 @@ public class Attack {
             // 4. Close runnable if done
             if (currTime > endAttackerThreadAtTime) {
                 // TODO Save the output values.
+                Log.e(TAG, "Done. Exiting " + currTime + " and end time was " + endAttackerThreadAtTime);
                 return;
             }
 
@@ -151,7 +169,9 @@ public class Attack {
             FN: X was injected, but we didn't flag it
          */
 
-        boolean ongoingAttack = ongoingAttacks.containsKey(sensor) ? ongoingAttacks.get(sensor) : false;
+        if (!initializedAttack) return;
+
+        boolean ongoingAttack = ongoingAttacks.get(sensor);
 
         if (ongoingAttack && detectedFlag) TP.put(sensor, TP.get(sensor) + 1);
         else if (ongoingAttack && !detectedFlag) FN.put(sensor, FN.get(sensor) + 1);
@@ -166,6 +186,7 @@ public class Attack {
     }
 
     public void runAttackGeneral(List<AttackSpec> attackSpecs, Float duration) {
+
         this.attackSpecs = attackSpecs;
         endAttackerThreadAtTime = (long) (System.currentTimeMillis() + duration * 1000);
 
@@ -196,7 +217,19 @@ public class Attack {
             FN.put(attack.sensor, 0);
         }
 
+        for (String sensor : all_sensors) {
+            if (!TP.containsKey(sensor)) {
+                TP.put(sensor, 0);
+                FP.put(sensor, 0);
+                TN.put(sensor, 0);
+                FN.put(sensor, 0);
+                firstDetectionTimeMap.put(sensor, -1L);
+                ongoingAttacks.put(sensor, false);
+            }
+        }
+
         attackRunHandler.post(stepAttack);
+        initializedAttack = true;
     }
 
 
@@ -241,8 +274,8 @@ public class Attack {
         List<AttackSpec> attackSpecs = new ArrayList<>();
         attackSpecs.add(new AttackSpec(
                 attackSensor,
-                System.currentTimeMillis() + 15L,
-                System.currentTimeMillis() + 30L,
+                System.currentTimeMillis() + 15000L,
+                System.currentTimeMillis() + 30000L,
                 attackType,
                 targetValue
         ));

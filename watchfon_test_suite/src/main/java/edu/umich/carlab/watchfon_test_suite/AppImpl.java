@@ -168,6 +168,7 @@ public class AppImpl extends App {
                 parentActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+
                         sensorRow.setInjection(splitValues.get(INJECTION_MAGNITUDE));
                     }
                 });

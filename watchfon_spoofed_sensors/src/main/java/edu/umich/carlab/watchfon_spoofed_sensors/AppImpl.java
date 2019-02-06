@@ -1,15 +1,10 @@
 package edu.umich.carlab.watchfon_spoofed_sensors;
 
 import android.content.Context;
-import android.hardware.SensorManager;
-import android.util.Pair;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
-import edu.umich.carlab.loadable.App;
-import edu.umich.carlab.loadable.Middleware;
-import edu.umich.carlabui.appbases.SensorListAppBase;
 import edu.umich.carlab.sensors.OpenXcSensors;
-import edu.umich.carlab.sensors.PhoneSensors;
+import edu.umich.carlabui.appbases.SensorListAppBase;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,28 +16,22 @@ import static edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl.*;
  * condition. The output of this middleware is the injected data and a mask to specify the magnitude of the injection.
  * This is used in the WatchFon project to detect injection into the CAN bus by comparing with the smartphone-derived
  * sensors.
- *
+ * <p>
  * The nature of the injection is controlled using this middleware's settings.
  */
 
 public class AppImpl extends SensorListAppBase {
     final String TAG = "watchfon_spoofed_sensors";
-
-    Double injectionMagnitude = 0d, newValue;
-    Map<String, Float> injectionMagnitudes;
-    Map<String, Attack.Type> injectionTypes;
-
-
     // From watchfon_intrusion_detection, soon to be deprecated
-    final String INTRUSION_DETECTION = "watchfon_intrusion_detection";
     final String ID_ATTACK = "attack_value";
-
     // From watchfon_test_suite
     final String TEST_SUITE = "watchfon_test_suite";
     final String TS_ATTACK = "attack";
     final String TS_ATTACK_SENSOR = "attack_sensor";
     final String TS_ATTACK_TYPE = "attack_type";
-
+    Double injectionMagnitude = 0d, newValue;
+    Map<String, Float> injectionMagnitudes;
+    Map<String, Attack.Type> injectionTypes;
     String[] allSensors = {
             SPEED,
             STEERING,
@@ -71,7 +60,6 @@ public class AppImpl extends SensorListAppBase {
         subscribe(OpenXcSensors.DEVICE, OpenXcSensors.ENGINERPM);
         subscribe(OpenXcSensors.DEVICE, OpenXcSensors.GEAR);
 
-        subscribe(INTRUSION_DETECTION, ID_ATTACK);
         subscribe(TEST_SUITE, TS_ATTACK);
     }
 
@@ -87,13 +75,7 @@ public class AppImpl extends SensorListAppBase {
         if (dev.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;
 
-        if (dev.equals(INTRUSION_DETECTION) && sen.equals(ID_ATTACK)) {
-            injectionMagnitudes.put(STEERING, 10.0f);
-            injectionMagnitudes.put(ENGINERPM, 1000.0f);
-            injectionTypes.put(STEERING, Attack.Type.DELTA);
-            injectionTypes.put(ENGINERPM, Attack.Type.SUDDEN);
-            return;
-        } else if (dev.equals(TEST_SUITE) && sen.equals(TS_ATTACK)) {
+        if (dev.equals(TEST_SUITE) && sen.equals(TS_ATTACK)) {
             String sensor = ONE_HOT_REVERSE.get(dObject.value[0]);
             injectionMagnitudes.put(sensor, dObject.value[1]);
             injectionTypes.put(
@@ -113,7 +95,7 @@ public class AppImpl extends SensorListAppBase {
                     sensor,
                     new Float[]{
                             newValue.floatValue(),
-                            injectionMagnitudes.get(sensor).floatValue(),
+                            (float) (newValue - dObject.value[0]),
                     }
             );
 
