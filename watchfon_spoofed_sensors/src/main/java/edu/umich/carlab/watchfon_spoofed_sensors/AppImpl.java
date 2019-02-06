@@ -33,7 +33,7 @@ public class AppImpl extends SensorListAppBase {
     Map<String, Attack.Type> injectionTypes;
 
 
-    // Fro watchfon_intrusion_detection, soon to be deprecated
+    // From watchfon_intrusion_detection, soon to be deprecated
     final String INTRUSION_DETECTION = "watchfon_intrusion_detection";
     final String ID_ATTACK = "attack_value";
 
@@ -42,7 +42,6 @@ public class AppImpl extends SensorListAppBase {
     final String TS_ATTACK = "attack";
     final String TS_ATTACK_SENSOR = "attack_sensor";
     final String TS_ATTACK_TYPE = "attack_type";
-
 
     String[] allSensors = {
             SPEED,
@@ -95,12 +94,6 @@ public class AppImpl extends SensorListAppBase {
             injectionTypes.put(ENGINERPM, Attack.Type.SUDDEN);
             return;
         } else if (dev.equals(TEST_SUITE) && sen.equals(TS_ATTACK)) {
-            /*
-                splitMap.put(ATTACK_SENSOR, dataObject.value[0]);
-                splitMap.put(ATTACK_VALUE, dataObject.value[1]);
-                splitMap.put(ATTACK_TYPE, dataObject.value[1]);
-             */
-
             String sensor = ONE_HOT_REVERSE.get(dObject.value[0]);
             injectionMagnitudes.put(sensor, dObject.value[1]);
             injectionTypes.put(

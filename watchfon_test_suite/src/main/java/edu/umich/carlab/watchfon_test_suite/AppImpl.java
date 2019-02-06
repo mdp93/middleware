@@ -2,6 +2,7 @@ package edu.umich.carlab.watchfon_test_suite;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -11,10 +12,15 @@ import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.watchfon_spoofed_sensors.Attack;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static edu.umich.carlab.Constants.*;
 import static edu.umich.carlab.watchfon_intrusion_detection.MiddlewareImpl.*;
 import static edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl.*;
 
@@ -26,15 +32,16 @@ public class AppImpl extends App {
 
     final edu.umich.carlab.watchfon_intrusion_detection.MiddlewareImpl intrusion_detection =
             new edu.umich.carlab.watchfon_intrusion_detection.MiddlewareImpl();
-
+    // The test suite can also load attack specifications from the spec file
+    // This might be stored from the Load_Attack_From_Specs_Key file
+    JSONArray attackSpecsJson;
+    float startTime = -1, endTime = -1;
+    Long firstDataTime = null;
+    boolean attackInitiated = false;
     private boolean visualizationInitialized = false;
     private Spinner attackSelection;
     private Map<String, SensorRow> sensorRows;
-
-
     private Attack attacker;
-
-
     private View.OnClickListener runAttackListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -42,6 +49,7 @@ public class AppImpl extends App {
             attacker.runAttack(attackSelectionId);
         }
     };
+
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
@@ -67,6 +75,22 @@ public class AppImpl extends App {
         subscribe(
                 intrusion_detection.APP,
                 DETECTION);
+
+        if (prefs != null) {
+            String specAttackString = prefs.getString(Load_Attack_From_Specs_Key, null);
+            startTime = prefs.getFloat(Load_From_Trace_Duration_Start, 0);
+            endTime = prefs.getFloat(Load_From_Trace_Duration_End, 30);
+            if (specAttackString != null) {
+                try {
+                    attackSpecsJson = new JSONArray(specAttackString);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error loading the JSON array: " + specAttackString);
+                }
+
+                // Unset this for the future
+                prefs.edit().putString(Load_Attack_From_Specs_Key, null).apply();
+            }
+        }
     }
 
 
@@ -76,11 +100,49 @@ public class AppImpl extends App {
         if (!isValidData(dObject)) return;
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
 
-
         String dev = dObject.device;
         String sen = dObject.sensor;
 
+        if (dev.equals(spoofed_sensors.APP) && firstDataTime == null)
+            firstDataTime = dObject.time;
+
+        if (attackSpecsJson != null
+                && dev.equals(spoofed_sensors.APP)
+                && dObject.time > firstDataTime + startTime
+                && attackInitiated == false) {
+
+
+            attackInitiated = true;
+            List<Attack.AttackSpec> attackSpecs = new ArrayList<>();
+            for (int i = 0; i < attackSpecsJson.length(); i++) {
+                try {
+                    JSONObject attackSpecJsonObj = attackSpecsJson.getJSONObject(i);
+                    JSONArray durationTimeJson = attackSpecJsonObj.getJSONArray("time");
+                    Attack.Type attackType = Attack.Type.DELTA;
+                    String attackTypeString = attackSpecJsonObj.getString("type");
+                    if (attackTypeString.equals("gradual"))
+                        attackType = Attack.Type.GRADUAL;
+                    else if (attackTypeString.equals("sudden"))
+                        attackType = Attack.Type.SUDDEN;
+
+                    attackSpecs.add(new Attack.AttackSpec(
+                            attackSpecJsonObj.getString("sensor"),
+                            durationTimeJson.getLong(0),
+                            durationTimeJson.getLong(1),
+                            attackType,
+                            (float) attackSpecJsonObj.getDouble("value")
+                    ));
+                } catch (Exception e) {
+
+                }
+            }
+
+            attacker.runAttackGeneral(attackSpecs, endTime - startTime);
+        }
+
+
         if (visualizationInitialized) {
+            // FIXME The evaluation should run even if visualization is not enabled
             if (dev.equals(intrusion_detection.APP) && sen.equals(DETECTION)) {
                 Map<String, Float> detectionDetails = intrusion_detection.splitValues(dObject);
                 String sensor = ONE_HOT_REVERSE.get(
