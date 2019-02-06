@@ -29,7 +29,7 @@ import java.util.Map;
 
 public class AppImpl extends App {
     final String TAG = "wf-ids";
-    final int GRID_WIDTH = 480;
+    final int GRID_WIDTH = 500;
     final int GRID_HEIGHT = 500;
 
 
@@ -125,7 +125,6 @@ public class AppImpl extends App {
                     errorCounters.put(sensor, 0);
                 }
 
-
                 // For now, we multiply the "duration" by 10 since the data comes in at 10 Hz anyway.
                 boolean fireAlert = (errorCounters.get(sensor) > MiddlewareImpl.DURATIONS.get(sensor) * 10);
 
@@ -177,11 +176,45 @@ public class AppImpl extends App {
     }
 
 
-    View initializeComparisonGraph(String sensorName) {
+    View initializeComparisonGraph(int sensorIndex, String sensorName) {
         comparisonGraphs.get(sensorName).addLineGraph(watchfon_spoofed_sensors.APP, sensorName);
         comparisonGraphs.get(sensorName).addLineGraph(watchfon_estimates.APP, sensorName);
         View v = comparisonGraphs.get(sensorName).initializeVisualization(parentActivity);
+
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+
+        switch(sensorIndex) {
+            case 0:
+                params.rowSpec = GridLayout.spec( 1);
+                params.columnSpec = GridLayout.spec(0);
+                break;
+            case 1:
+                params.rowSpec = GridLayout.spec( 1);
+                params.columnSpec = GridLayout.spec(1);
+                break;
+            case 2:
+                params.rowSpec = GridLayout.spec( 2);
+                params.columnSpec = GridLayout.spec(0);
+                break;
+            case 3:
+                params.rowSpec = GridLayout.spec( 2);
+                params.columnSpec = GridLayout.spec(1);
+                break;
+            case 4:
+                params.rowSpec = GridLayout.spec( 3);
+                params.columnSpec = GridLayout.spec(0);
+                break;
+            case 5:
+                params.rowSpec = GridLayout.spec( 3);
+                params.columnSpec = GridLayout.spec(1);
+                break;
+        }
+
+        params.height = GRID_HEIGHT;
         v.setLayoutParams(new LinearLayout.LayoutParams(GRID_WIDTH, GRID_HEIGHT));
+//        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+//        params.height = GRID_HEIGHT;
+//        v.setLayoutParams(params);
         return v;
     }
 
@@ -197,8 +230,10 @@ public class AppImpl extends App {
         visWrapper.addView(mapView);
 
 
-        for (String sensor : all_sensors)
-            visWrapper.addView(initializeComparisonGraph(sensor));
+
+        for (int i = 0; i < all_sensors.length; i++) {
+            visWrapper.addView(initializeComparisonGraph(i, all_sensors[i]));
+        }
 
         return controlWrapper;
     }
@@ -215,7 +250,12 @@ public class AppImpl extends App {
 
     void initializeMapView() {
         mapView = new MapView(context);
-        mapView.setLayoutParams(new LinearLayout.LayoutParams(GRID_WIDTH, GRID_HEIGHT));
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+        params.rowSpec = GridLayout.spec(0, 1);
+        params.columnSpec = GridLayout.spec(0, 2);
+        params.height = GRID_HEIGHT;
+        mapView.setLayoutParams(params);
+
         mapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap googleMap) {

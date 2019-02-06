@@ -32,12 +32,19 @@ public class MiddlewareImpl extends Middleware {
 
 
         // The units vary per attack
-        MAGNITUDES.put(watchfon_estimates.SPEED, 0.094f);
-        MAGNITUDES.put(watchfon_estimates.STEERING, 1.27f);
-        MAGNITUDES.put(watchfon_estimates.GEAR, 1.11f);
-        MAGNITUDES.put(watchfon_estimates.ENGINERPM, 76.5f);
-        MAGNITUDES.put(watchfon_estimates.ODOMETER, 0.06f);
-        MAGNITUDES.put(watchfon_estimates.FUEL, 0.036f);
+//        MAGNITUDES.put(watchfon_estimates.SPEED, 0.094f);
+//        MAGNITUDES.put(watchfon_estimates.STEERING, 1.27f);
+//        MAGNITUDES.put(watchfon_estimates.GEAR, 1.11f);
+//        MAGNITUDES.put(watchfon_estimates.ENGINERPM, 76.5f);
+//        MAGNITUDES.put(watchfon_estimates.ODOMETER, 0.06f);
+//        MAGNITUDES.put(watchfon_estimates.FUEL, 0.036f);
+
+        MAGNITUDES.put(watchfon_estimates.SPEED, 10f);
+        MAGNITUDES.put(watchfon_estimates.STEERING, 200f);
+        MAGNITUDES.put(watchfon_estimates.GEAR, 40f);
+        MAGNITUDES.put(watchfon_estimates.ENGINERPM, 7600.5f);
+        MAGNITUDES.put(watchfon_estimates.ODOMETER, 1000.06f);
+        MAGNITUDES.put(watchfon_estimates.FUEL, 2500.036f);
     }
 
     @Override

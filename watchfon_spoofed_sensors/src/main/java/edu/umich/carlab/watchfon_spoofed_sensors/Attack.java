@@ -1,12 +1,20 @@
 package edu.umich.carlab.watchfon_spoofed_sensors;
 
-import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.ProgressBar;
+import edu.umich.carlab.Constants;
 import edu.umich.carlab.DataMarshal;
+import edu.umich.carlab.io.CLTripWriter;
 import edu.umich.carlab.loadable.App;
+import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,25 +25,9 @@ import static edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl.*;
 public class Attack {
     final int SLEEP_BETWEEN_STEPS = 250;
     final String TAG = "Attacker";
-    private Handler attackRunHandler;
-    private int attackStage = 0;
-    private Map<String, Float> startingValues;
-    private Activity activity;
-    private App parentApp;
-    private boolean initializedAttack = false;
-    private ProgressBar attackProgress;
-    private Map<String, Boolean> ongoingAttacks;
-    private List<AttackSpec> attackSpecs;
-    private Long endAttackerThreadAtTime;
-    private Map<String, Integer> FP, TP, FN, TN;
-    private Map<String, Long> firstDetectionTimeMap;
-    private Map<String, Boolean> attackInitialized;
-    private Map<String, Long> attackStartingTimes;
-
     // Sensors from the vehicle (with optional injection for intrusion detection evaluation)
     final edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl watchfon_spoofed_sensors =
             new edu.umich.carlab.watchfon_spoofed_sensors.MiddlewareImpl();
-
     String[] all_sensors = {
             watchfon_spoofed_sensors.SPEED,
             watchfon_spoofed_sensors.STEERING,
@@ -45,7 +37,20 @@ public class Attack {
             watchfon_spoofed_sensors.ENGINERPM,
 
     };
-
+    private Handler attackRunHandler;
+    private int attackStage = 0;
+    private Map<String, Float> startingValues;
+    private App parentApp;
+    private Context context;
+    private boolean initializedAttack = false;
+    private ProgressBar attackProgress;
+    private Map<String, Boolean> ongoingAttacks;
+    private List<AttackSpec> attackSpecs;
+    private Long endAttackerThreadAtTime;
+    private Map<String, Integer> FP, TP, FN, TN;
+    private Map<String, Long> firstDetectionTimeMap;
+    private Map<String, Boolean> attackInitialized;
+    private Map<String, Long> attackStartingTimes;
     Runnable stepAttack = new Runnable() {
         @Override
         public void run() {
@@ -65,8 +70,9 @@ public class Attack {
             if (attackProgress != null) {
                 attackProgress.setProgress(attackStage);
                 Log.e(TAG, "Updating progress: " + attackStage);
-                Log.e(TAG, "Time is: " + currTime + " and end time was " + endAttackerThreadAtTime);
             }
+
+            Log.e(TAG, "Time is: " + currTime + " and end time was " + endAttackerThreadAtTime);
 
             String sensor;
             Long attackStartTime, attackEndTime;
@@ -112,8 +118,8 @@ public class Attack {
 
             // 4. Close runnable if done
             if (currTime > endAttackerThreadAtTime) {
-                // TODO Save the output values.
                 Log.e(TAG, "Done. Exiting " + currTime + " and end time was " + endAttackerThreadAtTime);
+                saveResults();
                 return;
             }
 
@@ -124,18 +130,51 @@ public class Attack {
     };
 
 
-    public Attack(Activity activity, ProgressBar progressBar, App parentApp) {
-        this.activity = activity;
-        this.attackProgress = progressBar;
+    public Attack(App parentApp, Context context) {
         this.parentApp = parentApp;
+        this.context = context;
+
+        Looper mainLooper = Looper.getMainLooper();
+        if (mainLooper == null)
+            Log.e(TAG, "Unable to start attacker. Looper not present");
+        else
+            attackRunHandler = new Handler(mainLooper);
+    }
 
 
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                attackRunHandler = new Handler();
+    public void setProgressBar(ProgressBar pbar) {
+        attackProgress = pbar;
+    }
+
+    void saveResults() {
+        File resultsDir = CLTripWriter.GetResultsDir(context);
+        String filename = String.format("%d.json", System.currentTimeMillis());
+        File ofile = new File(resultsDir, filename);
+
+        try {
+            JSONObject resultObj = new JSONObject();
+            for (String sensor : all_sensors) {
+                JSONObject sensorResult = new JSONObject();
+                sensorResult.put("tp", TP.get(sensor));
+                sensorResult.put("fp", FP.get(sensor));
+                sensorResult.put("tn", TN.get(sensor));
+                sensorResult.put("fn", FN.get(sensor));
+                resultObj.put(sensor, sensorResult);
             }
-        });
+
+            FileOutputStream fos = new FileOutputStream(ofile);
+            OutputStreamWriter osw = new OutputStreamWriter(fos);
+            osw.write(resultObj.toString());
+            osw.close();
+            fos.close();
+
+            Intent intent = new Intent(Constants.DONE_RUNNING_SPEC_FILE);
+            intent.putExtra(Constants.SPEC_RESULT_FILENAME, ofile.getAbsolutePath());
+            Log.v(TAG, "Finished running spec file evaluation. Saving file to " + ofile.getAbsolutePath());
+            context.sendBroadcast(intent);
+        } catch (Exception e) {
+            Log.e(TAG, "Trouble saving result");
+        }
     }
 
     void initializeIfNeeded(AttackSpec attackSpec, Long currTime) {
@@ -170,6 +209,7 @@ public class Attack {
          */
 
         if (!initializedAttack) return;
+        Log.v(TAG, "Attack detected and initialized " + sensor);
 
         boolean ongoingAttack = ongoingAttacks.get(sensor);
 
@@ -188,7 +228,8 @@ public class Attack {
     public void runAttackGeneral(List<AttackSpec> attackSpecs, Float duration) {
 
         this.attackSpecs = attackSpecs;
-        endAttackerThreadAtTime = (long) (System.currentTimeMillis() + duration * 1000);
+        Long currTime = System.currentTimeMillis();
+        endAttackerThreadAtTime = (long) (currTime + (long) (duration * 1000));
 
         if (attackProgress != null)
             attackProgress.setMax((int) (duration * 1000 / SLEEP_BETWEEN_STEPS));
@@ -228,8 +269,9 @@ public class Attack {
             }
         }
 
-        attackRunHandler.post(stepAttack);
+        Log.v(TAG, "Attack started. Posting");
         initializedAttack = true;
+        attackRunHandler.post(stepAttack);
     }
 
 
@@ -274,12 +316,12 @@ public class Attack {
         List<AttackSpec> attackSpecs = new ArrayList<>();
         attackSpecs.add(new AttackSpec(
                 attackSensor,
-                System.currentTimeMillis() + 15000L,
-                System.currentTimeMillis() + 30000L,
+                System.currentTimeMillis() + 7 * 1000L,
+                System.currentTimeMillis() + 15 * 1000L,
                 attackType,
                 targetValue
         ));
-        runAttackGeneral(attackSpecs, 30f);
+        runAttackGeneral(attackSpecs, 15.0f);
     }
 
     public enum Type {
