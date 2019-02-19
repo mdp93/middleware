@@ -20,7 +20,7 @@ public class AppImpl extends SensorListAppBase {
     Integer lastGear = null;
     Float lastSpeed = null;
     Double rpm = 0.0;
-    Map<Integer, Double> Gear_Ratio;
+    Map<Integer, Float> Gear_Ratio;
 
     final double INCHES_TO_METERS = 0.0254;
     final double IDLE_RPM = 800;
@@ -33,14 +33,15 @@ public class AppImpl extends SensorListAppBase {
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
+
         Gear_Ratio = new HashMap<>();
-        Gear_Ratio.put(-1, 2.882);
-        Gear_Ratio.put(1, 4.584);
-        Gear_Ratio.put(2, 2.964);
-        Gear_Ratio.put(3, 1.912);
-        Gear_Ratio.put(4, 1.446);
-        Gear_Ratio.put(5, 1.0);
-        Gear_Ratio.put(6, 0.742);
+        Gear_Ratio.put(-1, 2.882f);
+        Gear_Ratio.put(1, 4.584f);
+        Gear_Ratio.put(2, 2.964f);
+        Gear_Ratio.put(3, 1.912f);
+        Gear_Ratio.put(4, 1.446f);
+        Gear_Ratio.put(5, 1.0f);
+        Gear_Ratio.put(6, 0.742f);
 
         name = "watchfon_rpm";
         middlewareName = MiddlewareImpl.APP;
@@ -51,6 +52,10 @@ public class AppImpl extends SensorListAppBase {
                     context,
                     middleware.FINAL_DRIVE_RATIO,
                     FINAL_DRIVE_RATIO);
+            String VEHICLE_NAME = middleware.getParameterOrDefault(context, middleware.VEHICLE_NAME, "");
+            if (middleware.Gear_Ratio_Sets.containsKey(VEHICLE_NAME))
+                Gear_Ratio = middleware.Gear_Ratio_Sets.get(VEHICLE_NAME);
+
         }
 
         subscribe(watchfon_gear.APP, watchfon_gear.GEAR);
