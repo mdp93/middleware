@@ -24,9 +24,12 @@ public class AppImpl extends SensorListAppBase {
 
     final double INCHES_TO_METERS = 0.0254;
     final double IDLE_RPM = 800;
-    final double FINAL_DRIVE_RATIO = 3.36f;
+
+    float FINAL_DRIVE_RATIO = 3.36f;
     final double TIRE_DIAM = (245 / 1000.0 * 45 / 100.0) * 2 + (18 * INCHES_TO_METERS);
-    final double TIRE_CIRCUM = TIRE_DIAM * Math.PI / 1000.0;
+    float TIRE_CIRCUM = (float)(TIRE_DIAM * Math.PI / 1000.0);
+
+    MiddlewareImpl middleware = new MiddlewareImpl();
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
@@ -41,6 +44,15 @@ public class AppImpl extends SensorListAppBase {
 
         name = "watchfon_rpm";
         middlewareName = MiddlewareImpl.APP;
+
+        if (context != null) {
+            TIRE_CIRCUM = middleware.getParameterOrDefault(context, middleware.TIRE_CIRCUMFERENCE, TIRE_CIRCUM);
+            FINAL_DRIVE_RATIO = middleware.getParameterOrDefault(
+                    context,
+                    middleware.FINAL_DRIVE_RATIO,
+                    FINAL_DRIVE_RATIO);
+        }
+
         subscribe(watchfon_gear.APP, watchfon_gear.GEAR);
         subscribe(watchfon_speed.APP, watchfon_speed.SPEED);
     }
@@ -69,6 +81,7 @@ public class AppImpl extends SensorListAppBase {
         if (lastGear != null && lastSpeed != null) {
             if (!Gear_Ratio.containsKey(lastGear)) return;
             rpm = (FINAL_DRIVE_RATIO * Gear_Ratio.get(lastGear)) / TIRE_CIRCUM / 60.0;
+            if (rpm < IDLE_RPM) rpm = IDLE_RPM;
             outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.RPM, rpm.floatValue());
         }
 
