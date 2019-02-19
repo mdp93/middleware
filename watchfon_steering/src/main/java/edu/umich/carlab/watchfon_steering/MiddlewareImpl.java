@@ -11,11 +11,6 @@ public class MiddlewareImpl extends Middleware {
 
     public final static String STEERING_RATIO = "steering_ratio";
     public final static String VEHICLE_LENGTH = "vehicle_length";
-    public static List<String> configurableParameters = new ArrayList<>(Arrays.asList(
-            STEERING_RATIO,
-            VEHICLE_LENGTH
-    ));
-
 
     @Override
     public String getName() {

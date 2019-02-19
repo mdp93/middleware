@@ -21,9 +21,14 @@ public class AppImpl extends App {
 
     final Double MILE_PER_KM = 0.621371;
     final Double GALLONS_PER_LITER = 0.26417217685;
-    final Double AVERAGE_MPG = 23d;
-    final Double MAX_FUEL_CAPACITY = 18d;
+
+    // Parameters
+    Float AVERAGE_MPG = 23f;
+    Float MAX_FUEL_CAPACITY = 18f;
+
+
     final edu.umich.carlab.watchfon_odometer.MiddlewareImpl watchfon_odometer = new edu.umich.carlab.watchfon_odometer.MiddlewareImpl();
+    MiddlewareImpl middleware = new MiddlewareImpl();
 
     Double previousFuelLevel; // in liters
     Double lastOdometer, currOdometer;
@@ -33,11 +38,18 @@ public class AppImpl extends App {
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "watchfon_fuel";
+
         middlewareName = MiddlewareImpl.APP;
         sensors.add(new Pair<>(watchfon_odometer.APP, watchfon_odometer.DISTANCE));
 
-        if (context != null)
-            previousFuelLevel = loadValue(FUEL_KEY, MAX_FUEL_CAPACITY);
+        if (context != null) {
+            previousFuelLevel = loadValue(FUEL_KEY, (double)MAX_FUEL_CAPACITY);
+            AVERAGE_MPG = middleware.getParameterOrDefault(context, middleware.AVERAGE_MPG, AVERAGE_MPG);
+            MAX_FUEL_CAPACITY = middleware.getParameterOrDefault(
+                    context,
+                    middleware.MAX_FUEL_CAPACITY,
+                    MAX_FUEL_CAPACITY);
+        }
     }
 
 
@@ -70,8 +82,8 @@ public class AppImpl extends App {
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                previousFuelLevel = MAX_FUEL_CAPACITY;
-                saveValue(FUEL_KEY, MAX_FUEL_CAPACITY);
+                previousFuelLevel = (double)MAX_FUEL_CAPACITY;
+                saveValue(FUEL_KEY, (double)MAX_FUEL_CAPACITY);
             }
         });
         return resetButton;

@@ -10,6 +10,9 @@ public class MiddlewareImpl extends Middleware {
     public final static String APP = "watchfon_fuel";
     public final static String FUEL = "fuel";
 
+    public final static String MAX_FUEL_CAPACITY = "max_fuel_capacity";
+    public final static String AVERAGE_MPG = "average_mpg";
+
     @Override
     public String getName() {
         return APP;
