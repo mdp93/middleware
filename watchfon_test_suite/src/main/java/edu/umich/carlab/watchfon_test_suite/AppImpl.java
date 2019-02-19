@@ -79,20 +79,22 @@ public class AppImpl extends App {
                 intrusion_detection.APP,
                 DETECTION);
 
-        SharedPreferences globalPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        if (globalPrefs != null) {
-            String specAttackString = globalPrefs.getString(Load_Attack_From_Specs_Key, null);
-            specStartTimeInSecs = globalPrefs.getFloat(Load_From_Trace_Duration_Start, 0);
-            specEndTimeInSecs = globalPrefs.getFloat(Load_From_Trace_Duration_End, 30);
-            if (specAttackString != null) {
-                try {
-                    attackSpecsJson = new JSONArray(specAttackString);
-                } catch (Exception e) {
-                    Log.e(TAG, "Error loading the JSON array: " + specAttackString);
-                }
+        if (context != null) {
+            SharedPreferences globalPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+            if (globalPrefs != null) {
+                String specAttackString = globalPrefs.getString(Load_Attack_From_Specs_Key, null);
+                specStartTimeInSecs = globalPrefs.getFloat(Load_From_Trace_Duration_Start, 0);
+                specEndTimeInSecs = globalPrefs.getFloat(Load_From_Trace_Duration_End, 30);
+                if (specAttackString != null) {
+                    try {
+                        attackSpecsJson = new JSONArray(specAttackString);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error loading the JSON array: " + specAttackString);
+                    }
 
-                // Unset this for the future
-                globalPrefs.edit().putString(Load_Attack_From_Specs_Key, null).apply();
+                    // Unset this for the future
+                    globalPrefs.edit().putString(Load_Attack_From_Specs_Key, null).apply();
+                }
             }
         }
     }

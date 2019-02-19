@@ -16,20 +16,29 @@ import java.util.Map;
  */
 public class AppImpl extends SensorListAppBase {
     final String TAG = "WatchfonSteering";
-    final double STEERING_RATIO = 14.8;
     final double INCHES_TO_METERS = 0.0254;
-    final double VEHICLE_LENGTH = 193.9 * INCHES_TO_METERS; // Finally in meters
+
+    // Parameters
+    float STEERING_RATIO = 14.8f;
+    float VEHICLE_LENGTH = (float)(193.9 * INCHES_TO_METERS); // Finally in meters
 
     Float lastSpeed = null;
     Float lastYaw = null;
 
     final edu.umich.carlab.world_aligned_imu.MiddlewareImpl world_aligned_imu =  new edu.umich.carlab.world_aligned_imu.MiddlewareImpl();
     final edu.umich.carlab.watchfon_speed.MiddlewareImpl watchfon_speed = new edu.umich.carlab.watchfon_speed.MiddlewareImpl();
+    final MiddlewareImpl middleware = new MiddlewareImpl();
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "watchfon_steering";
         middlewareName = MiddlewareImpl.APP;
+
+        if (context != null) {
+            STEERING_RATIO = middleware.getParameterOrDefault(context, middleware.STEERING_RATIO, STEERING_RATIO);
+            VEHICLE_LENGTH = middleware.getParameterOrDefault(context, middleware.VEHICLE_LENGTH, VEHICLE_LENGTH);
+        }
+
         subscribe(watchfon_speed.APP, watchfon_speed.SPEED);
         subscribe(world_aligned_imu.APP, world_aligned_imu.GYRO);
     }
