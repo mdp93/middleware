@@ -9,6 +9,7 @@ import java.util.Map;
 public class MiddlewareImpl extends Middleware {
     public final static String APP = "watchfon_gear";
     public final static String GEAR = "gear";
+    public final static String VEHICLE_NAME = "vehicle_name";
 
     @Override
     public String getName() {
