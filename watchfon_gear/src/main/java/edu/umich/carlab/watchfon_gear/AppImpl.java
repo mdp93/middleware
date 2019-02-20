@@ -41,7 +41,7 @@ public class AppImpl extends SensorListAppBase {
 
                 // 2. Load model file using tensorflow lite Interpreter
                 AssetManager assetManager = context.getAssets();
-                tflite = new Interpreter(loadModelFile(assetManager, modelfilename));
+                tflite = new Interpreter(loadModelFile(assetManager, modelfilename), null);
             } catch (Exception e) {
                 Log.e(TAG, "Unable to find the model file");
             }
