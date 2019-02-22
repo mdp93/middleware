@@ -109,11 +109,11 @@ public class AppImpl extends SensorListAppBase {
             }
 
             ByteBuffer bb = ByteBuffer.allocate(4*5);
-            bb.putFloat(f1.value);
-            bb.putFloat(f2.value);
-            bb.putFloat(f3.value);
-            bb.putFloat(f4.value);
             bb.putFloat(f5.value);
+            bb.putFloat(f4.value);
+            bb.putFloat(f3.value);
+            bb.putFloat(f2.value);
+            bb.putFloat(f1.value);
 
             // 3. Use feature set to make prediction
             runningPrediction = true;
@@ -122,6 +122,9 @@ public class AppImpl extends SensorListAppBase {
 
             // 4. Use reverse one-hot encoding to output the gear value
             float gearValue = oneHotDecode(labelProb);
+            Log.v(TAG, String.format("[%.02f, %.02f, %.02f, %.02f, %.02f] -> %d",
+                    f1.value, f2.value, f3.value, f4.value, f5.value, (int)gearValue));
+
             outputData(middleware.APP, middleware.GEAR, gearValue);
         }
     }

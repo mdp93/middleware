@@ -224,7 +224,6 @@ public class Attack {
     }
 
     public void runAttackGeneral(List<AttackSpec> attackSpecs, Float duration) {
-
         this.attackSpecs = attackSpecs;
         Long currTime = System.currentTimeMillis();
         endAttackerThreadAtTime = (long) (currTime + (long) (duration * 1000));
