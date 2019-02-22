@@ -20,7 +20,6 @@ import java.nio.channels.FileChannel;
 
 public class AppImpl extends SensorListAppBase {
     final String TAG = "watchfon_gear";
-    final edu.umich.carlab.world_aligned_imu.MiddlewareImpl world_aligned_imu = new edu.umich.carlab.world_aligned_imu.MiddlewareImpl();
     final edu.umich.carlab.watchfon_speed.MiddlewareImpl watchfon_speed = new edu.umich.carlab.watchfon_speed.MiddlewareImpl();
     final MiddlewareImpl middleware = new MiddlewareImpl();
 
@@ -99,7 +98,13 @@ public class AppImpl extends SensorListAppBase {
             DataSample f5 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 0L);
 
             if (f1 == null || f2 == null || f3 == null || f4 == null || f5 == null) {
-                Log.e(TAG, "Couldn't construct feature vector");
+                Log.e(TAG,
+                        String.format("Couldn't construct feature vector [%d, %d, %d, %d, %d]",
+                                (f1 == null) ? 0 : 1,
+                                (f2 == null) ? 0 : 1,
+                                (f3 == null) ? 0 : 1,
+                                (f4 == null) ? 0 : 1,
+                                (f5 == null) ? 0 : 1));
                 return;
             }
 
@@ -109,7 +114,6 @@ public class AppImpl extends SensorListAppBase {
             bb.putFloat(f3.value);
             bb.putFloat(f4.value);
             bb.putFloat(f5.value);
-
 
             // 3. Use feature set to make prediction
             runningPrediction = true;

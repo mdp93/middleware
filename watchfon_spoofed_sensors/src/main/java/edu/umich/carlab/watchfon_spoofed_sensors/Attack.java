@@ -72,8 +72,6 @@ public class Attack {
                 Log.e(TAG, "Updating progress: " + attackStage);
             }
 
-            Log.e(TAG, "Time is: " + currTime + " and end time was " + endAttackerThreadAtTime);
-
             String sensor;
             Long attackStartTime, attackEndTime;
             Float attackTargetValue;
