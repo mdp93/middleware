@@ -43,6 +43,7 @@ public class AppImpl extends SensorListAppBase {
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
+        foregroundApp = true;
         name = "watchfon_spoofed_sensors";
         middlewareName = MiddlewareImpl.APP;
 

@@ -27,7 +27,8 @@ public class AppImpl extends SensorListAppBase {
 
     // It's a 10-sized one-hot encoding
     float[][] labelProb = new float[1][10];
-    boolean runningPrediction = false;
+    float [][] inputBuffer = new float[5][1];
+    Object runningPredictionLock = new Object();
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
@@ -42,6 +43,7 @@ public class AppImpl extends SensorListAppBase {
                 // 1. Get model filename by taking MD5 hash
                 String hex = new String(Hex.encodeHex(DigestUtils.md5(vehicleName)));
                 String modelfilename = String.format("%s.jpg", hex);
+                Log.v(TAG, "Loading model file: " + modelfilename);
 
                 // 2. Load model file using tensorflow lite Interpreter
                 AssetManager assetManager = context.getAssets();
@@ -85,50 +87,57 @@ public class AppImpl extends SensorListAppBase {
                 return;
             }
 
-            if (runningPrediction) {
-                Log.v(TAG, "Busy predicting previous value");
-                return;
-            }
+            synchronized (runningPredictionLock) {
 
-            // 2. Get the speed samples at the last [-4, -3, -2, -1, 0] seconds (similar to getLatestData(dev, sen))
-            DataSample f1 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 4000L);
-            DataSample f2 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 3000L);
-            DataSample f3 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 2000L);
-            DataSample f4 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 1000L);
-            DataSample f5 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 0L);
+                // 2. Get the speed samples at the last [-4, -3, -2, -1, 0] seconds (similar to getLatestData(dev, sen))
+                DataSample f1 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 4000L);
+                DataSample f2 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 3000L);
+                DataSample f3 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 2000L);
+                DataSample f4 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 1000L);
+                DataSample f5 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 0L);
 
-            if (f1 == null || f2 == null || f3 == null || f4 == null || f5 == null) {
-                Log.e(TAG,
-                        String.format("Couldn't construct feature vector [%d, %d, %d, %d, %d]",
-                                (f1 == null) ? 0 : 1,
-                                (f2 == null) ? 0 : 1,
-                                (f3 == null) ? 0 : 1,
-                                (f4 == null) ? 0 : 1,
-                                (f5 == null) ? 0 : 1));
-                return;
-            }
+                if (f1 == null || f2 == null || f3 == null || f4 == null || f5 == null) {
+                    Log.e(TAG,
+                            String.format("Couldn't construct feature vector [%d, %d, %d, %d, %d]",
+                                    (f1 == null) ? 0 : 1,
+                                    (f2 == null) ? 0 : 1,
+                                    (f3 == null) ? 0 : 1,
+                                    (f4 == null) ? 0 : 1,
+                                    (f5 == null) ? 0 : 1));
+                    return;
+                }
 
-            ByteBuffer bb = ByteBuffer.allocate(4*5);
-            bb.putFloat(f5.value);
-            bb.putFloat(f4.value);
-            bb.putFloat(f3.value);
-            bb.putFloat(f2.value);
-            bb.putFloat(f1.value);
 
-            // 3. Use feature set to make prediction
-            runningPrediction = true;
-            tflite.run(bb, labelProb);
-            runningPrediction = false;
+                /*
+                // This should give us 2
+                f1.value = 15.24f;
+                f2.value = 17.88f;
+                f3.value = 18.88f;
+                f4.value = 18.39f;
+                f5.value = 18.25f;
+                */
+                inputBuffer[0][0] = f1.value;
+                inputBuffer[1][0] = f2.value;
+                inputBuffer[2][0] = f3.value;
+                inputBuffer[3][0] = f4.value;
+                inputBuffer[4][0] = f5.value;
 
-            // 4. Use reverse one-hot encoding to output the gear value
-            float gearValue = oneHotDecode(labelProb);
+                // 3. Use feature set to make prediction
+                tflite.run(inputBuffer, labelProb);
+
+                // 4. Use reverse one-hot encoding to output the gear value
+                float gearValue = oneHotDecode(labelProb);
             Log.v(TAG, String.format("[%.02f, %.02f, %.02f, %.02f, %.02f] -> %d",
                     f1.value, f2.value, f3.value, f4.value, f5.value, (int)gearValue));
+//                Log.v(TAG, String.format("[%.02f, %.02f, %.02f, %.02f, %.02f] -> [%.04f, %.04f, %.04f, %.04f, %.04f, %.04f, %.04f, %.04f, %.04f, %.04f] -> %d",
+//                        f1.value, f2.value, f3.value, f4.value, f5.value,
+//                        labelProb[0][0],labelProb[0][1],labelProb[0][2],labelProb[0][3],labelProb[0][4],labelProb[0][5],labelProb[0][6],labelProb[0][7],labelProb[0][8],labelProb[0][9],
+//                        (int)gearValue));
 
-            outputData(middleware.APP, middleware.GEAR, gearValue);
+                outputData(middleware.APP, middleware.GEAR, (float)gearValue);
+            }
         }
     }
-
 
     Integer oneHotDecode (float[][] labelProb) {
         float maxVal = labelProb[0][0];
