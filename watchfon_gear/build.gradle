@@ -50,5 +50,4 @@ dependencies {
     implementation project(':libcarlab')
     implementation project(':carlabui')
     implementation project(':watchfon_speed')
-    implementation project(':world_aligned_imu')
 }
