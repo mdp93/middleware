@@ -86,7 +86,7 @@ public class AppImpl extends App {
             lastIntrusionChecked.put(sensor, 0L);
         }
 
-        name = "WatchFon Dashboard";
+        name = "PaaCSA Dashboard";
     }
 
 

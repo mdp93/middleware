@@ -13,7 +13,6 @@ import org.tensorflow.lite.Interpreter;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -27,7 +26,7 @@ public class AppImpl extends SensorListAppBase {
 
     // It's a 10-sized one-hot encoding
     float[][] labelProb = new float[1][10];
-    float [][] inputBuffer = new float[5][1];
+    float[][] inputBuffer = new float[5][1];
     Object runningPredictionLock = new Object();
 
     public AppImpl(CLDataProvider cl, Context context) {
@@ -43,6 +42,8 @@ public class AppImpl extends SensorListAppBase {
                 // 1. Get model filename by taking MD5 hash
                 String hex = new String(Hex.encodeHex(DigestUtils.md5(vehicleName)));
                 String modelfilename = String.format("%s.jpg", hex);
+                // FIXME We are using a dummy model file for now
+                modelfilename = "b0ca7d986ad940d6d5b5001dc0c8dc4e.jpg";
                 Log.v(TAG, "Loading model file: " + modelfilename);
 
                 // 2. Load model file using tensorflow lite Interpreter
@@ -88,7 +89,6 @@ public class AppImpl extends SensorListAppBase {
             }
 
             synchronized (runningPredictionLock) {
-
                 // 2. Get the speed samples at the last [-4, -3, -2, -1, 0] seconds (similar to getLatestData(dev, sen))
                 DataSample f1 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 4000L);
                 DataSample f2 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 3000L);
@@ -127,19 +127,19 @@ public class AppImpl extends SensorListAppBase {
 
                 // 4. Use reverse one-hot encoding to output the gear value
                 float gearValue = oneHotDecode(labelProb);
-            Log.v(TAG, String.format("[%.02f, %.02f, %.02f, %.02f, %.02f] -> %d",
-                    f1.value, f2.value, f3.value, f4.value, f5.value, (int)gearValue));
+                Log.v(TAG, String.format("[%.02f, %.02f, %.02f, %.02f, %.02f] -> %d",
+                        f1.value, f2.value, f3.value, f4.value, f5.value, (int) gearValue));
 //                Log.v(TAG, String.format("[%.02f, %.02f, %.02f, %.02f, %.02f] -> [%.04f, %.04f, %.04f, %.04f, %.04f, %.04f, %.04f, %.04f, %.04f, %.04f] -> %d",
 //                        f1.value, f2.value, f3.value, f4.value, f5.value,
 //                        labelProb[0][0],labelProb[0][1],labelProb[0][2],labelProb[0][3],labelProb[0][4],labelProb[0][5],labelProb[0][6],labelProb[0][7],labelProb[0][8],labelProb[0][9],
 //                        (int)gearValue));
 
-                outputData(middleware.APP, middleware.GEAR, (float)gearValue);
+                outputData(middleware.APP, middleware.GEAR, (float) gearValue);
             }
         }
     }
 
-    Integer oneHotDecode (float[][] labelProb) {
+    Integer oneHotDecode(float[][] labelProb) {
         float maxVal = labelProb[0][0];
         int maxIdx = 0;
         float val;

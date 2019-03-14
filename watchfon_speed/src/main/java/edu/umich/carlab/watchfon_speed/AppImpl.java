@@ -1,11 +1,8 @@
 package edu.umich.carlab.watchfon_speed;
 
 import android.content.Context;
-import android.hardware.SensorManager;
-import android.util.Pair;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
-import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.sensors.PhoneSensors;
 import edu.umich.carlabui.appbases.SensorListAppBase;
 
@@ -20,7 +17,7 @@ import java.util.Map;
 public class AppImpl extends SensorListAppBase {
     final String TAG = "WatchfonSpeed";
 
-    final float MPS_TO_KMPH = 1/0.621371f;
+    final float MPS_TO_KMPH = 1 / 0.621371f;
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);

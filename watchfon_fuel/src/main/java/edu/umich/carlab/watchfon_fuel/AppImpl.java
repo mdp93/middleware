@@ -2,17 +2,12 @@ package edu.umich.carlab.watchfon_fuel;
 
 import android.app.Activity;
 import android.content.Context;
-import android.hardware.SensorManager;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
 import edu.umich.carlab.loadable.App;
-import edu.umich.carlab.sensors.PhoneSensors;
-import edu.umich.carlabui.appbases.SensorListAppBase;
-
-import java.util.Map;
 
 
 public class AppImpl extends App {
@@ -21,13 +16,10 @@ public class AppImpl extends App {
 
     final Double MILE_PER_KM = 0.621371;
     final Double GALLONS_PER_LITER = 0.26417217685;
-
+    final edu.umich.carlab.watchfon_odometer.MiddlewareImpl watchfon_odometer = new edu.umich.carlab.watchfon_odometer.MiddlewareImpl();
     // Parameters
     Float AVERAGE_MPG = 23f;
     Float MAX_FUEL_CAPACITY = 18f;
-
-
-    final edu.umich.carlab.watchfon_odometer.MiddlewareImpl watchfon_odometer = new edu.umich.carlab.watchfon_odometer.MiddlewareImpl();
     MiddlewareImpl middleware = new MiddlewareImpl();
 
     Double previousFuelLevel; // in liters
@@ -43,7 +35,7 @@ public class AppImpl extends App {
         sensors.add(new Pair<>(watchfon_odometer.APP, watchfon_odometer.DISTANCE));
 
         if (context != null) {
-            previousFuelLevel = loadValue(FUEL_KEY, (double)MAX_FUEL_CAPACITY);
+            previousFuelLevel = loadValue(FUEL_KEY, (double) MAX_FUEL_CAPACITY);
             AVERAGE_MPG = middleware.getParameterOrDefault(context, middleware.AVERAGE_MPG, AVERAGE_MPG);
             MAX_FUEL_CAPACITY = middleware.getParameterOrDefault(
                     context,
@@ -82,8 +74,8 @@ public class AppImpl extends App {
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                previousFuelLevel = (double)MAX_FUEL_CAPACITY;
-                saveValue(FUEL_KEY, (double)MAX_FUEL_CAPACITY);
+                previousFuelLevel = (double) MAX_FUEL_CAPACITY;
+                saveValue(FUEL_KEY, (double) MAX_FUEL_CAPACITY);
             }
         });
         return resetButton;

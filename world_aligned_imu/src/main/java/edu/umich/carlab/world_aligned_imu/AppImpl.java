@@ -2,10 +2,8 @@ package edu.umich.carlab.world_aligned_imu;
 
 import android.content.Context;
 import android.hardware.SensorManager;
-import android.util.Pair;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
-import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.sensors.PhoneSensors;
 import edu.umich.carlabui.appbases.SensorListAppBase;
 
@@ -17,20 +15,14 @@ import edu.umich.carlabui.appbases.SensorListAppBase;
  */
 public class AppImpl extends SensorListAppBase {
     final String TAG = "AppImpl";
-
-    private DataMarshal.DataObject  lastMagnet,
+    float[][] RotMat = new float[3][3];
+    private DataMarshal.DataObject lastMagnet,
             lastGravity,
             lastGyro,
             lastAccel;
-
     private float[] R = new float[9];
     private float[] I = new float[9];
-    private float [] lastComputedOrientation = new float[3];
-    float [] [] RotMat = new float[3][3];
-
-    public float [] getLastOrientation() {
-        return lastComputedOrientation;
-    }
+    private float[] lastComputedOrientation = new float[3];
 
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
@@ -43,6 +35,9 @@ public class AppImpl extends SensorListAppBase {
         subscribe(PhoneSensors.DEVICE, PhoneSensors.ACCEL);
     }
 
+    public float[] getLastOrientation() {
+        return lastComputedOrientation;
+    }
 
     @Override
     public void newData(DataMarshal.DataObject dObject) {
@@ -76,8 +71,8 @@ public class AppImpl extends SensorListAppBase {
             Float[] gravity = lastGravity.value;
             if (magnet == null || gravity == null) return;
 
-            float [] magnet_r = new float[] { magnet[0], magnet[1], magnet[2] };
-            float [] gravity_r = new float[] { gravity[0], gravity[1], gravity[2] };
+            float[] magnet_r = new float[]{magnet[0], magnet[1], magnet[2]};
+            float[] gravity_r = new float[]{gravity[0], gravity[1], gravity[2]};
 
 
             boolean success = SensorManager.getRotationMatrix(R, I, gravity_r, magnet_r);
@@ -105,7 +100,6 @@ public class AppImpl extends SensorListAppBase {
         }
 
 
-
         if (lastComputedOrientation != null && lastGyro != null)
             outputData(
                     MiddlewareImpl.APP,
@@ -122,14 +116,12 @@ public class AppImpl extends SensorListAppBase {
                     MatrixMul(lastAccel.value, RotMat));
     }
 
-    public Float[] MatrixMul(Float[] T, float[][]RotMat){
+    public Float[] MatrixMul(Float[] T, float[][] RotMat) {
         Float[] temp = T.clone();
-        for(int i = 0; i < RotMat.length; i++)
-            for(int j = 0; j < T.length; j++){
-                temp[i] = temp[i] + T[j]*RotMat[j][i];
+        for (int i = 0; i < RotMat.length; i++)
+            for (int j = 0; j < T.length; j++) {
+                temp[i] = temp[i] + T[j] * RotMat[j][i];
             }
         return temp;
     }
-
-
 }

@@ -1,11 +1,8 @@
 package edu.umich.carlab.watchfon_rpm;
 
 import android.content.Context;
-import android.hardware.SensorManager;
-import android.util.Pair;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
-import edu.umich.carlab.loadable.App;
 import edu.umich.carlabui.appbases.SensorListAppBase;
 
 import java.util.HashMap;
@@ -16,18 +13,15 @@ public class AppImpl extends SensorListAppBase {
     final String TAG = "watchfon_rpm";
     final edu.umich.carlab.watchfon_speed.MiddlewareImpl watchfon_speed = new edu.umich.carlab.watchfon_speed.MiddlewareImpl();
     final edu.umich.carlab.watchfon_gear.MiddlewareImpl watchfon_gear = new edu.umich.carlab.watchfon_gear.MiddlewareImpl();
-
+    final double INCHES_TO_METERS = 0.0254;
+    final double IDLE_RPM = 800;
+    final double TIRE_DIAM = (245 / 1000.0 * 45 / 100.0) * 2 + (18 * INCHES_TO_METERS);
     Integer lastGear = null;
     Float lastSpeed = null;
     Double rpm = 0.0;
     Map<Integer, Float> Gear_Ratio;
-
-    final double INCHES_TO_METERS = 0.0254;
-    final double IDLE_RPM = 800;
-
     float FINAL_DRIVE_RATIO = 3.36f;
-    final double TIRE_DIAM = (245 / 1000.0 * 45 / 100.0) * 2 + (18 * INCHES_TO_METERS);
-    float TIRE_CIRCUM = (float)(TIRE_DIAM * Math.PI / 1000.0);
+    float TIRE_CIRCUM = (float) (TIRE_DIAM * Math.PI / 1000.0);
 
     MiddlewareImpl middleware = new MiddlewareImpl();
 
@@ -72,15 +66,15 @@ public class AppImpl extends SensorListAppBase {
         if (dObject.value == null) return;
 
         if (
-            dObject.device.equals(watchfon_gear.APP)
-            && dObject.sensor.equals(watchfon_gear.GEAR)
-        )
+                dObject.device.equals(watchfon_gear.APP)
+                        && dObject.sensor.equals(watchfon_gear.GEAR)
+                )
             lastGear = Math.round(dObject.value[0]);
 
         if (
-            dObject.device.equals(watchfon_speed.APP)
-            && dObject.sensor.equals(watchfon_speed.SPEED)
-        )
+                dObject.device.equals(watchfon_speed.APP)
+                        && dObject.sensor.equals(watchfon_speed.SPEED)
+                )
             lastSpeed = dObject.value[0];
 
         if (lastGear != null && lastSpeed != null) {

@@ -1,12 +1,9 @@
 package edu.umich.carlab.watchfon_odometer;
 
 import android.content.Context;
-import android.hardware.SensorManager;
 import android.location.Location;
-import android.util.Pair;
 import edu.umich.carlab.CLDataProvider;
 import edu.umich.carlab.DataMarshal;
-import edu.umich.carlab.loadable.App;
 import edu.umich.carlab.sensors.PhoneSensors;
 import edu.umich.carlabui.appbases.SensorListAppBase;
 
