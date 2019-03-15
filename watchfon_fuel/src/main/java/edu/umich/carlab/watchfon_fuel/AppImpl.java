@@ -26,7 +26,6 @@ public class AppImpl extends App {
     Double lastOdometer, currOdometer;
     Double distance, fuelConsumed;
 
-
     public AppImpl(CLDataProvider cl, Context context) {
         super(cl, context);
         name = "watchfon_fuel";
@@ -53,6 +52,7 @@ public class AppImpl extends App {
         if (dObject.value == null) return;
 
         if (dObject.device.equals(watchfon_odometer.APP) && dObject.sensor.equals(watchfon_odometer.DISTANCE)) {
+            startClock();
             currOdometer = dObject.value[0].doubleValue();
             if (lastOdometer != null) {
                 distance = currOdometer - lastOdometer; // in meters
@@ -60,10 +60,12 @@ public class AppImpl extends App {
                 fuelConsumed = distance / AVERAGE_MPG / GALLONS_PER_LITER; // in gallons
                 previousFuelLevel -= fuelConsumed;
                 outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.FUEL, previousFuelLevel.floatValue());
+                endClock();
             }
         }
 
         lastOdometer = currOdometer;
+
     }
 
     @Override

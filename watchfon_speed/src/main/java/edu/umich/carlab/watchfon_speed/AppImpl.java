@@ -35,8 +35,10 @@ public class AppImpl extends SensorListAppBase {
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;
 
+        startClock();
         Map<String, Float> gpsSplit = PhoneSensors.splitValues(dObject);
         Float speed = gpsSplit.get(PhoneSensors.GPS_SPEED) * MPS_TO_KMPH;
         outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.SPEED, speed);
+        endClock();
     }
 }

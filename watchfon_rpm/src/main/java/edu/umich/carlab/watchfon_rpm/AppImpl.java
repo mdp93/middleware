@@ -65,6 +65,7 @@ public class AppImpl extends SensorListAppBase {
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;
 
+        startClock();
         if (
                 dObject.device.equals(watchfon_gear.APP)
                         && dObject.sensor.equals(watchfon_gear.GEAR)
@@ -82,6 +83,10 @@ public class AppImpl extends SensorListAppBase {
             rpm = (FINAL_DRIVE_RATIO * Gear_Ratio.get(lastGear)) / TIRE_CIRCUM / 60.0;
             if (rpm < IDLE_RPM) rpm = IDLE_RPM;
             outputData(MiddlewareImpl.APP, dObject, MiddlewareImpl.RPM, rpm.floatValue());
+
+            // We might not always "endClock()" but that's OK because we just start
+            // clock the next time around and override the clock value
+            endClock();
         }
 
     }

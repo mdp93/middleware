@@ -42,6 +42,7 @@ public class AppImpl extends SensorListAppBase {
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;
 
+        startClock();
         Map<String, Float> values = PhoneSensors.splitValues(dObject);
         if (lastValues != null) {
             lastLoc.setLatitude(lastValues.get(PhoneSensors.GPS_LATITUDE));
@@ -55,6 +56,7 @@ public class AppImpl extends SensorListAppBase {
                     MiddlewareImpl.DISTANCE,
                     distance.floatValue()
             );
+            endClock();
         }
         lastValues = values;
     }

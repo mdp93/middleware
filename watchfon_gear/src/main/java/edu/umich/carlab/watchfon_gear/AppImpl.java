@@ -88,7 +88,9 @@ public class AppImpl extends SensorListAppBase {
                 return;
             }
 
+
             synchronized (runningPredictionLock) {
+                startClock();
                 // 2. Get the speed samples at the last [-4, -3, -2, -1, 0] seconds (similar to getLatestData(dev, sen))
                 DataSample f1 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 4000L);
                 DataSample f2 = getDataAt(watchfon_speed.APP, watchfon_speed.SPEED, 3000L);
@@ -135,6 +137,7 @@ public class AppImpl extends SensorListAppBase {
 //                        (int)gearValue));
 
                 outputData(middleware.APP, middleware.GEAR, (float) gearValue);
+                endClock();
             }
         }
     }

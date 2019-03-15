@@ -46,6 +46,7 @@ public class AppImpl extends SensorListAppBase {
         if (dObject.device.equals(MiddlewareImpl.APP)) return;
         if (dObject.value == null) return;
 
+        startClock();
         if (dObject.device.equals(edu.umich.carlab.watchfon_speed.MiddlewareImpl.APP))
             lastSpeed = dObject.value[0];
 
@@ -65,6 +66,7 @@ public class AppImpl extends SensorListAppBase {
                     MiddlewareImpl.STEERING,
                     steering.floatValue()
             );
+            endClock();
         }
 
     }
